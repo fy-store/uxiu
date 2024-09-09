@@ -1,0 +1,29 @@
+{
+	"name": "uxiu",
+	"type": "module",
+	"version": "1.0.0",
+	"description": "",
+	"main": "./dist/index.js",
+	"scripts": {
+		"dev": "cross-env NODE_ENV=development port=3323 tsx watch ./src/index.ts",
+		"test": "vitest"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"volta": {
+		"node": "20.17.0"
+	},
+	"devDependencies": {
+		"@types/koa": "^2.15.0",
+		"cross-env": "^7.0.3",
+		"tsx": "^4.19.0",
+		"typescript": "^5.5.4",
+		"vitest": "^2.0.5"
+	},
+	"dependencies": {
+		"koa": "^2.15.3",
+		"koa-router": "^12.0.1",
+		"koa-static": "^5.0.0"
+	}
+}
