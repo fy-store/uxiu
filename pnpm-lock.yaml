@@ -17,6 +17,9 @@ importers:
       koa-static:
         specifier: ^5.0.0
         version: 5.0.0
+      uxiu:
+        specifier: 'link:'
+        version: 'link:'
     devDependencies:
       '@types/koa':
         specifier: ^2.15.0
