@@ -30,7 +30,7 @@ export type MountedCtx = {
 }
 
 /**
- * 创建实例类型
+ * 创建实例配置
  */
 export type Config = {
 	/** 应用挂载的端口, 若环境变量 env 中传递, 则优先使用环境变量 */
