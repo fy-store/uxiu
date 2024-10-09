@@ -6,6 +6,7 @@
 	"main": "./dist/index.js",
 	"scripts": {
 		"dev": "cross-env NODE_ENV=development port=3323 tsx watch ./src/index.ts",
+		"dev:utils": "cross-env NODE_ENV=development port=3323 tsx watch ./src/utils/index.ts",
 		"test": "vitest"
 	},
 	"keywords": [],
@@ -16,6 +17,8 @@
 	},
 	"devDependencies": {
 		"@types/koa": "^2.15.0",
+		"@types/lodash-es": "^4.17.12",
+		"@types/node": "^20.16.6",
 		"cross-env": "^7.0.3",
 		"tsx": "^4.19.0",
 		"typescript": "^5.5.4",
@@ -25,6 +28,7 @@
 		"koa": "^2.15.3",
 		"koa-router": "^12.0.1",
 		"koa-static": "^5.0.0",
+		"lodash-es": "^4.17.21",
 		"uxiu": "link:"
 	}
 }
