@@ -11,9 +11,17 @@ export const readOnly = <T extends object>(data: T, options: Options = {}): T =>
 		return limitedThis(data, tip)
 	}
 }
+const list = [1, 2, 3]
+list.say = () => {
+	console.log(this)
+	return 'say'
+}
+const arr = readOnly(list, { mode: 'currency' })
+list.say.a = {
+	field: 123
+}
 
-const arr = readOnly([1, 2, 3], { mode: 'limitedThis' })
-
-// arr.at = 1
-
-console.log(arr.at(0))
+// arr.at.a = 1
+arr.say.a.b = 234
+console.log(list.say.a, arr.say.a)
+// console.log('结果 => ', arr.say === list.say)
