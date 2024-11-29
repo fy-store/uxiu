@@ -2,13 +2,12 @@ const log = (() => {
 	if (typeof console !== 'undefined') {
 		return console
 	} else {
-		const err = new Error('Error: current data is read only ! console is not existence !')
 		return {
-			warn(..._data: any[]) {
-				throw err
+			warn(...data: any[]) {
+				throw new Error(data[0])
 			},
-			error(..._data: any[]) {
-				throw err
+			error(...data: any[]) {
+				throw new Error(data[0])
 			}
 		}
 	}
@@ -16,15 +15,12 @@ const log = (() => {
 
 export default {
 	warn(...data: any[]) {
-		log.warn('Warning: ', ...data)
+		log.warn(...data)
 	},
 
 	error(...data: any[]) {
-		log.error('Error: ', ...data)
-		throw new Error('Error: current data is read only !')
+		throw new Error(data[0])
 	},
 
-	none(..._data: any) {
-		console.log('none')
-	}
+	none(..._data: any) {}
 }

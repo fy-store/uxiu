@@ -1,6 +1,6 @@
 export type Options = {
-	/** 模式 */
-	mode?: 'currency' | 'limitedThis'
+	/** 代理唯一标识, 在调用 readOnly.toOrigin() 时校验可用 */
+	sign?: any
 	/** 提示等级 */
-	tip?: 'none' | 'warn' | 'error'
+	// tip?: 'none' | 'warn' | 'error'
 }

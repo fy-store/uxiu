@@ -1,4 +1,5 @@
 export * from './isObject/index.js'
+export * from './isObj/index.js'
 export * from './isArray/index.js'
 export * from './isNull/index.js'
 export * from './isNumber/index.js'

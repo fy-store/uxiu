@@ -1,127 +1,276 @@
 import { describe, test, expect } from 'vitest'
-import { readOnly } from '../index.js'
+import { readonly } from '../index.js'
 import { cloneDeep } from 'lodash-es'
 
-describe('readOnly() / tip', () => {
-	test('error', () => {
-		const origin = {
-			a: 1,
-			b: 2,
-			c: ['a', 'b']
-		}
-		const newObj = readOnly(origin, { tip: 'error' })
-
+describe('readonly.shallowReadonly()', () => {
+	test('只允许引用类型', () => {
 		expect(() => {
-			newObj.c = []
+			readonly.shallowReadonly(1)
 		}).toThrowError()
+		expect(() => {
+			readonly.shallowReadonly(() => {})
+		}).not.toThrow()
 	})
 
-	test('warn', () => {
+	test('读取', () => {
 		const origin = {
 			a: 1,
 			b: 2,
-			c: ['a', 'b']
+			c: { c1: 3 }
 		}
-		const newObj = readOnly(origin, { tip: 'warn' })
-		newObj.c = []
 
-		expect(newObj).toEqual({
-			a: 1,
-			b: 2,
-			c: ['a', 'b']
-		})
+		const target = readonly.shallowReadonly(origin)
+		expect(target.a).toBe(1)
 	})
 
-	test('none', () => {
+	test('浅层设置', () => {
 		const origin = {
 			a: 1,
 			b: 2,
-			c: ['a', 'b']
+			c: { c1: 3 }
 		}
-		const newObj = readOnly(origin, { tip: 'none' })
-		newObj.c = []
 
-		expect(newObj).toEqual({
+		const target = readonly.shallowReadonly(origin)
+		target.a = 2
+		expect(target.a).toBe(1)
+	})
+
+	test('深层设置', () => {
+		const origin = {
 			a: 1,
 			b: 2,
-			c: ['a', 'b']
+			c: { c1: 3 }
+		}
+
+		const target = readonly.shallowReadonly(origin)
+		target.c.c1 = 4
+		expect(target.c.c1).toBe(4)
+	})
+
+	test('lodash cloneDeep()', () => {
+		const origin = {
+			a: 1,
+			b: 2,
+			c: { c1: 3 }
+		}
+
+		const target = readonly.shallowReadonly(origin)
+		expect(cloneDeep(target)).toEqual(origin)
+	})
+
+	test('浅层删除', () => {
+		const origin = {
+			a: 1,
+			b: 2,
+			c: { c1: 3 }
+		}
+
+		const target = readonly.shallowReadonly(origin)
+		delete target.c
+		expect(target).toEqual({
+			a: 1,
+			b: 2,
+			c: { c1: 3 }
 		})
+	})
+
+	test('深层删除', () => {
+		const origin = {
+			a: 1,
+			b: 2,
+			c: { c1: 3 }
+		}
+
+		const target = readonly.shallowReadonly(origin)
+		delete target.c.c1
+		expect(target).toEqual({
+			a: 1,
+			b: 2,
+			c: {}
+		})
+	})
+
+	test('Object.defindProperty()', () => {
+		const origin = {
+			a: 1,
+			b: 2,
+			c: { c1: 3 }
+		}
+
+		const target = readonly.shallowReadonly(origin)
+		Object.defineProperty(target, 'a', { value: 4 })
+		expect(target).toEqual({
+			a: 1,
+			b: 2,
+			c: { c1: 3 }
+		})
+	})
+
+	test('已经是 readonly.shallowReadonly', () => {
+		const origin = readonly.shallowReadonly({
+			a: 1,
+			b: 2,
+			c: { c1: 3 }
+		})
+
+		const target = readonly.shallowReadonly(origin)
+		expect(target).toBe(origin)
+	})
+
+	test('数组解构', () => {
+		const origin = readonly.shallowReadonly([1, [2]])
+		// @ts-ignore
+		const [a, [b], c] = origin
+		expect(a).toBe(1)
+		expect(b).toBe(2)
+		expect(c).toBe(undefined)
+	})
+
+	test('对象解构', () => {
+		const origin = readonly.shallowReadonly({ a: 1, b: { b: 2 } })
+		const {
+			a,
+			b: { b },
+			// @ts-ignore
+			c
+		} = origin
+		expect(a).toBe(1)
+		expect(b).toBe(2)
+		expect(c).toBe(undefined)
 	})
 })
 
-describe('readOnly() / mode', () => {
-	test('currency', () => {
+describe('readonly()', () => {
+	test('只允许引用类型', () => {
+		expect(() => {
+			readonly(1)
+		}).toThrowError()
+		expect(() => {
+			readonly.shallowReadonly(() => {})
+		}).not.toThrow()
+	})
+
+	test('普通读取', () => {
+		const target = readonly({
+			c: { c1: 3 }
+		})
+		expect(target.c.c1).toBe(3)
+	})
+
+	test('读取 symbol', () => {
+		const c1 = Symbol('c1')
+		const target = readonly({
+			c: { [c1]: 3 }
+		})
+		expect(target.c[c1]).toBe(3)
+	})
+
+	test('普通设置', () => {
+		const origin = {
+			c: { c1: 3 }
+		}
+
+		const target = readonly(origin)
+		target.c.c1 = 2
+		expect(target.c.c1).toBe(3)
+	})
+
+	test('设置 symbol 属性', () => {
+		const c1 = Symbol('c1')
+		const origin = {
+			c: { [c1]: 3 }
+		}
+
+		const target = readonly(origin)
+		target.c[c1] = 2
+		expect(target.c[c1]).toBe(3)
+	})
+
+	test('设置函数上的属性', () => {
+		const origin = {
+			f() {}
+		}
+
+		const target = readonly(origin)
+		// @ts-ignore
+		target.f.a = 2
+		// @ts-ignore
+		expect(target.f.a).toBe(undefined)
+	})
+
+	test('lodash cloneDeep()', () => {
 		const origin = {
 			a: 1,
 			b: 2,
-			c: ['a', 'b']
+			c: { c1: 3 }
 		}
-		const newObj = readOnly(origin, { tip: 'none', mode: 'currency' })
-		// 尝试修改
-		newObj.c = []
-		// 尝试删除
-		delete newObj.c
-		// 尝试重定义
-		Object.defineProperty(newObj, 'd', { value: 1 })
-		// 尝试结构后改值
-		const { c } = newObj
-		c[0] = '2'
-		// 尝试读取引用值修改
-		newObj.c[0] = '3'
 
-		const target = {
-			a: 1,
-			b: 2,
-			c: ['a', 'b']
-		}
-		// 尝试使用方法获取
-		expect(newObj.c.at(0)).toBe('a')
-		// 尝试克隆
-		expect(cloneDeep(newObj)).toEqual(target)
-		return
-		// 尝试序列化
-		expect(JSON.parse(JSON.stringify(newObj))).toEqual(target)
-
-		// 尝试调用方法改值
-		const arr = readOnly([1, 2, 3], { tip: 'none', mode: 'currency' })
-		arr.push(4)
-		expect(arr).toEqual([1, 2, 3, 4])
+		const target = readonly(origin)
+		expect(cloneDeep(target)).toEqual(origin)
 	})
 
-	// test('limitedThis', () => {
-	// 	const origin = {
-	// 		a: 1,
-	// 		b: 2,
-	// 		c: ['a', 'b']
-	// 	}
-	// 	const newObj = readOnly(origin, { tip: 'none', mode: 'limitedThis' })
-	// 	// 尝试修改
-	// 	newObj.c = []
-	// 	// 尝试删除
-	// 	delete newObj.c
-	// 	// 尝试重定义
-	// 	Object.defineProperty(newObj, 'd', { value: 1 })
-	// 	// 尝试结构后改值
-	// 	const { c } = newObj
-	// 	c[0] = '2'
-	// 	// 尝试读取引用值修改
-	// 	newObj.c[0] = '3'
+	test('删除', () => {
+		const origin = {
+			c: { c1: 3 }
+		}
 
-	// 	const target = {
-	// 		a: 1,
-	// 		b: 2,
-	// 		c: ['a', 'b']
-	// 	}
-	// 	// 尝试克隆
-	// 	expect(cloneDeep(newObj)).toEqual(target)
-	// 	// 尝试序列化
-	// 	expect(JSON.parse(JSON.stringify(newObj))).toEqual(target)
-	// 	// 尝试使用方法获取
-	// 	expect(newObj.c.at(0)).toBe('a')
+		const target = readonly(origin)
+		delete target.c.c1
+		expect(target).toEqual({
+			c: { c1: 3 }
+		})
+	})
 
-	// 	// // 尝试调用方法改值
-	// 	// const arr = readOnly([1, 2, 3], { tip: 'none', mode: 'limitedThis' })
-	// 	// arr.push(4)
-	// 	// expect(arr).toEqual([1, 2, 3, 4])
-	// })
+	test('Object.defindProperty()', () => {
+		const origin = {
+			c: { c1: 3 }
+		}
+
+		const target = readonly(origin)
+		Object.defineProperty(target.c, 'c1', { value: 4 })
+		expect(target).toEqual({
+			c: { c1: 3 }
+		})
+	})
+
+	test('已经是 readonly.shallowReadonly', () => {
+		const origin = readonly.shallowReadonly({
+			c: { c1: 3 }
+		})
+
+		const target = readonly(origin)
+		delete target.c.c1
+		expect(target).toEqual({ c: { c1: 3 } })
+	})
+
+	test('已经是 readonly()', () => {
+		const origin = readonly({
+			c: { c1: 3 }
+		})
+
+		const target = readonly(origin)
+		expect(target).toBe(origin)
+	})
+
+	test('数组解构', () => {
+		const origin = readonly([1, [2]])
+		// @ts-ignore
+		const [a, [b], c] = origin
+		expect(a).toBe(1)
+		expect(b).toBe(2)
+		expect(c).toBe(undefined)
+	})
+
+	test('对象解构', () => {
+		const origin = readonly({ a: 1, b: { b: 2 } })
+		const {
+			a,
+			b: { b },
+			// @ts-ignore
+			c
+		} = origin
+		expect(a).toBe(1)
+		expect(b).toBe(2)
+		expect(c).toBe(undefined)
+	})
 })
