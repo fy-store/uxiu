@@ -1,4 +1,3 @@
-import { isArray } from '../isArray/index.js'
 import { isObject } from '../isObject/index.js'
 import { isFunction } from '../isFunction/index.js'
 
@@ -10,7 +9,7 @@ import { isFunction } from '../isFunction/index.js'
  * @returns boolean
  */
 export const isReferenceValue = (data: any): boolean => {
-	return isArray(data) || isObject(data) || isFunction(data)
+	return isObject(data) || isFunction(data)
 }
 
 /**
