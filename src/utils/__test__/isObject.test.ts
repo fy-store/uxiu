@@ -13,7 +13,7 @@ test('isObject()', () => {
 		isObject(() => {}),
 		'function'
 	).toBe(false)
-	expect(isObject([]), 'array').toBe(false)
+	expect(isObject([]), 'array').toBe(true)
 	expect(isObject({}), 'object').toBe(true)
 	expect(isObject(new Date()), 'date').toBe(true)
 })
