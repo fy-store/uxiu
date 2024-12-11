@@ -6,7 +6,7 @@
 	"main": "./dist/index.js",
 	"scripts": {
 		"dev": "cross-env NODE_ENV=development port=3323 tsx watch ./src/index.ts",
-		"dev:utils": "cross-env NODE_ENV=development port=3323 tsx watch ./src/utils/index.ts",
+		"dev:utils": "cross-env NODE_ENV=development port=3323 tsx watch ./src/utils/__test__/index.ts",
 		"test": "vitest"
 	},
 	"keywords": [],

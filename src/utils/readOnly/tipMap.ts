@@ -19,6 +19,7 @@ export default {
 	},
 
 	error(...data: any[]) {
+		log.error(...data)
 		throw new Error(data[0])
 	},
 

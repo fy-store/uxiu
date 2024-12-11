@@ -138,6 +138,19 @@ describe('readonly.shallowReadonly()', () => {
 		expect(b).toBe(2)
 		expect(c).toBe(undefined)
 	})
+
+	test('toOrigin()', () => {
+		const origin = readonly.shallowReadonly({ a: 1, b: { b: 2 } }, { sign: 'test' })
+		expect(() => {
+			readonly.toOrigin(origin)
+		}).toThrowError()
+		expect(readonly.toOrigin(origin, 'test')).toEqual({ a: 1, b: { b: 2 } })
+	})
+
+	test('getTip()', () => {
+		const origin = readonly.shallowReadonly({ a: 1, b: { b: 2 } }, { tip: 'error' })
+		expect(readonly.getTip(origin)).toBe('error')
+	})
 })
 
 describe('readonly()', () => {
@@ -272,5 +285,18 @@ describe('readonly()', () => {
 		expect(a).toBe(1)
 		expect(b).toBe(2)
 		expect(c).toBe(undefined)
+	})
+
+	test('toOrigin()', () => {
+		const origin = readonly({ a: 1, b: { b: 2 } }, { sign: 'test' })
+		expect(() => {
+			readonly.toOrigin(origin)
+		}).toThrowError()
+		expect(readonly.toOrigin(origin, 'test')).toEqual({ a: 1, b: { b: 2 } })
+	})
+
+	test('getTip()', () => {
+		const origin = readonly({ a: 1, b: { b: 2 } }, { tip: 'error' })
+		expect(readonly.getTip(origin)).toBe('error')
 	})
 })

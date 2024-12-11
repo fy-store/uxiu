@@ -1,10 +1,13 @@
+import { type Options } from './types/index.js'
+
 export const SYSTEM_SIGN = Symbol('systemSign')
 export const proxyCollection = new WeakMap<
 	any,
 	{
 		isShallowReadonly: boolean
 		data: any
-		sign: any
+		sign: Options['sign']
+		tip: Options['tip']
 	}
 >()
 
@@ -47,7 +50,7 @@ export const isReadonly = (target: any) => {
  * - 转换失败将抛出错误
  * @param target 目标
  */
-export const toOrigin = (target: any, sign?: any) => {
+export const toOrigin = <T extends object>(target: T, sign?: any): T => {
 	const info = proxyCollection.get(target)
 	if (!info) {
 		throw new Error('"target" is not readonly')
@@ -61,4 +64,19 @@ export const toOrigin = (target: any, sign?: any) => {
 		throw new Error('"sign" is not match')
 	}
 	return info.data
+}
+
+export const tipList = ['error', 'warn', 'none']
+
+/**
+ * 获取只读数据的错误提示等级
+ * - 获取失败将抛出错误
+ * @param target 目标
+ */
+export const getTip = (target: any): Options['tip'] => {
+	const info = proxyCollection.get(target)
+	if (!info) {
+		throw new Error('"target" is not readonly')
+	}
+	return info.tip
 }
