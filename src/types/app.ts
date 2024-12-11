@@ -33,16 +33,16 @@ export type MountedCtx = {
  * 创建实例配置
  */
 export type Config = {
-	/** 应用挂载的端口, 若环境变量 env 中传递, 则优先使用环境变量 */
+	/** 应用挂载的端口, 默认为 3323 */
 	port?: number
 	/** 应用初始化前, 此时 koa 还未创建, server 还未创建, 支持 async 返回 Promise 将会等待 */
-	beforeInit?: (ctx: BeforeInitCtx) => Promise<void> | void
+	beforeInit?: (ctx: BeforeInitCtx) => Promise<any> | void
 	/** 应用初始化后, 此时 koa 已经创建, server 还未创建, 支持 async 返回 Promise 将会等待 */
-	inited?: (ctx: InitedCtx) => Promise<void> | void
+	inited?: (ctx: InitedCtx) => Promise<any> | void
 	/** 应用初始化后http服务挂载前, 此时 koa 已经创建, server 已经创建但还未挂载, 支持 async 返回 Promise 将会等待 */
-	beforeMount?: (ctx: BeforeMountCtx) => Promise<void> | void
+	beforeMount?: (ctx: BeforeMountCtx) => Promise<any> | void
 	/** 应用初始化后并且http服务已经挂载, 支持 async 返回 Promise 将会等待 */
-	mounted?: (ctx: MountedCtx) => Promise<void> | void
+	mounted?: (ctx: MountedCtx) => Promise<any> | void
 	/** 端口挂载失败错误提示 */
 	mountPortErrorTip?: boolean
 	/** 应用挂载失败事件 */

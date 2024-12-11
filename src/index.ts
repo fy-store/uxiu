@@ -24,8 +24,7 @@ const app = async (config: Config = {}) => {
 		await config.beforeMount(ctx)
 	}
 
-	const { mountPortErrorTip = true } = config
-	const port = process.env.port || config.port
+	const { mountPortErrorTip = true, port = 3323 } = config
 	server.on('error', (error: any) => {
 		// 判断端口是否被占用
 		if (error?.code === 'EADDRINUSE' && mountPortErrorTip) {
