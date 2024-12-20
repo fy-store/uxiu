@@ -8,6 +8,7 @@
 		"dev": "cross-env NODE_ENV=development port=3323 tsx watch ./src/index.ts",
 		"dev:utils": "cross-env NODE_ENV=development port=3323 tsx watch ./src/utils/__test__/index.ts",
 		"dev:app": "cross-env NODE_ENV=development port=3323 tsx watch ./tests/dev/index.ts",
+		"pro:app": "cross-env NODE_ENV=development port=3323 tsx watch ./tests/pro/index.js",
 		"test": "vitest"
 	},
 	"keywords": [],
