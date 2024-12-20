@@ -1,23 +1,31 @@
-import { readonly } from '../index.js'
+import { sleep, omit, hasEmpty, hasInvalid } from '../index.js'
 console.clear()
 
-const obj = {
-	info: {
-		name: 'lala',
-		changeName(name: string) {
-			obj.info.name = name
-		}
-	}
+const target = {
+	num: 1,
+	num2: 0,
+	num3: -0,
+	// num4: Infinity,
+	// num5: -Infinity,
+	// num6: NaN,
+	str: 'str',
+	// str2: '',
+	bool: false,
+	bool2: true,
+	// und: undefined,
+	// nu: null
 }
 
-const newObj = readonly(obj)
-// newObj.info.name = 'abc'
-// console.log(newObj)
-const newObj2 = readonly.shallowReadonly(newObj)
-newObj2.info.name = 'lala3'
-// console.log()
-// newObj.info.name = 'lala2'
-// newObj.info.changeName('lala2')
-// console.log(newObj)
-// readonly.toOrigin(newObj).info.name = 'lala3'
-// console.log(readonly.toOrigin(newObj))
+console.log(
+	hasInvalid(target, {
+		// Infinity: false,
+		// '-Infinity': false,
+		// NaN: false,
+		// undefined: false,
+		// null: false,
+		// 0: true,
+		// '-0': true,
+		// '': true,
+		// str: true
+	})
+)
