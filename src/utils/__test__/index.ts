@@ -1,5 +1,4 @@
 import { sleep, omit, hasEmpty, hasInvalid } from '../index.js'
-console.clear()
 
 const target = {
 	num: 1,
@@ -11,7 +10,7 @@ const target = {
 	str: 'str',
 	// str2: '',
 	bool: false,
-	bool2: true,
+	bool2: true
 	// und: undefined,
 	// nu: null
 }

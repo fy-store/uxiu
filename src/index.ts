@@ -1,8 +1,13 @@
 import http from 'http'
 import Koa from 'koa'
 import { Config } from '@/types/app.js'
+export * from './utils/index.js'
 
-const app = async (config: Config = {}) => {
+/**
+ * 创建一个 koa 实例
+ * @param config 配置选项
+ */
+export const crateApp = async (config: Config = {}) => {
 	const ctx = {
 		app: null,
 		server: null
@@ -44,4 +49,4 @@ const app = async (config: Config = {}) => {
 	})
 }
 
-export default app
+export default crateApp
