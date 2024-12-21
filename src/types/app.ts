@@ -1,30 +1,46 @@
-import koa from 'koa'
+import Koa from 'koa'
 import http from 'http'
 
 export type BeforeInitCtx = {
+	/** 挂载的端口 */
+	port: number
+	/** 环境模式, NODE_ENV */
+	env: 'production' | 'development'
 	/** koa 实例 */
-	app: typeof koa | null
+	app: Koa<Koa.DefaultState, Koa.DefaultContext> | null
 	/** http 服务 */
 	server: http.Server | null
 }
 
 export type InitedCtx = {
+	/** 挂载的端口 */
+	port: number
+	/** 环境模式, NODE_ENV */
+	env: 'production' | 'development'
 	/** koa 实例 */
-	app: typeof koa
+	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server | null
 }
 
 export type BeforeMountCtx = {
+	/** 挂载的端口 */
+	port: number
+	/** 环境模式, NODE_ENV */
+	env: 'production' | 'development'
 	/** koa 实例 */
-	app: typeof koa
+	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server
 }
 
 export type MountedCtx = {
+	/** 挂载的端口 */
+	port: number
+	/** 环境模式, NODE_ENV */
+	env: 'production' | 'development'
 	/** koa 实例 */
-	app: typeof koa
+	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server
 }

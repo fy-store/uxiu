@@ -1,4 +1,7 @@
-export interface VerifyConfig {
+/**
+ * hasInvalid() 配置选项
+ */
+interface HasInvalidConfig {
 	/** undefined 默认为 true */
 	undefined?: boolean
 	/** null 默认为 true */
@@ -29,14 +32,14 @@ export interface VerifyConfig {
  * @param target 目标对象
  * @returns 结果
  */
-export const hasInvalid = (target: object, verifyConfig?: VerifyConfig) => {
+export const hasInvalid = (target: object, verifyConfig?: HasInvalidConfig) => {
 	const config = Object.assign(
 		{
 			undefined: true,
 			null: true,
 			NaN: true,
 			Infinity: true,
-			'-Infinity': true,
+			'-Infinity': true
 			// '': false,
 			// '0': false,
 			// '-0': false,

@@ -1,4 +1,7 @@
-export interface Options {
+/**
+ * extract() 配置选项
+ */
+interface ExtractOptions {
 	/** 是否包含原型链上的属性, 默认为 true */
 	containPrototype?: boolean
 	/** 当获取不到数据时写入 undefined, 若不写入则结构中不会包含该字段, 默认为 true */
@@ -15,7 +18,7 @@ export interface Options {
 export const extract = <T1 extends object, T2 extends (keyof T1)[]>(
 	target: T1,
 	keys: T2,
-	options?: Options
+	options?: ExtractOptions
 ): Pick<T1, T2[number]> => {
 	type Data = Pick<T1, T2[number]>
 	const data: Data = {} as Data

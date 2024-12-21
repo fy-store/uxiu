@@ -1,6 +1,7 @@
 import http from 'http'
 import Koa from 'koa'
-import { Config } from '@/types/app.js'
+import { type MountedCtx, type Config } from '@/types/app.js'
+import { readonly } from '@/utils/index.js'
 export * from './utils/index.js'
 
 /**
@@ -8,28 +9,32 @@ export * from './utils/index.js'
  * @param config 配置选项
  */
 export const crateApp = async (config: Config = {}) => {
-	const ctx = {
+	const ctx: MountedCtx = {
+		env: process.env.NODE_ENV === 'development' ? 'development' : 'production',
+		port: config.port || 3323,
 		app: null,
 		server: null
 	}
 
+	const readonlyCtx = readonly(ctx, { tip: 'error' })
+
 	if (config.beforeInit) {
-		await config.beforeInit(ctx)
+		await config.beforeInit(readonlyCtx)
 	}
 
-	const app = new Koa({ env: process.env.NODE_ENV || 'production' })
+	const app = new Koa({ env: ctx.env })
 	ctx.app = app
 	if (config.inited) {
-		await config.inited(ctx)
+		await config.inited(readonlyCtx)
 	}
 
 	const server = http.createServer(app.callback())
 	ctx.server = server
 	if (config.beforeMount) {
-		await config.beforeMount(ctx)
+		await config.beforeMount(readonlyCtx)
 	}
 
-	const { mountPortErrorTip = true, port = 3323 } = config
+	const { mountPortErrorTip = true, port = ctx.port } = config
 	server.on('error', (error: any) => {
 		// 判断端口是否被占用
 		if (error?.code === 'EADDRINUSE' && mountPortErrorTip) {
@@ -44,7 +49,7 @@ export const crateApp = async (config: Config = {}) => {
 
 	server.listen(port, async () => {
 		if (config.mounted) {
-			await config.mounted(ctx)
+			await config.mounted(readonlyCtx)
 		}
 	})
 }

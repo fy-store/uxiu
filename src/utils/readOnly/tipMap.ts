@@ -4,7 +4,7 @@ const log = (() => {
 	} else {
 		return {
 			warn(...data: any[]) {
-				throw new Error(data[0])
+				throw new Error(`"console.warn()" not existent, "readonly()" prevent missing reminders, therefore throw Error ! ${data[0]}`)
 			},
 			error(...data: any[]) {
 				throw new Error(data[0])
@@ -15,10 +15,12 @@ const log = (() => {
 
 export default {
 	warn(...data: any[]) {
+		data[0] = `\x1b[33m${data[0]} \x1B[0m`
 		log.warn(...data)
 	},
 
 	error(...data: any[]) {
+		data[0] = `\x1b[31m${data[0]} \x1B[0m`
 		log.error(...data)
 		throw new Error(data[0])
 	},

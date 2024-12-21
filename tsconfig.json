@@ -11,9 +11,22 @@
 		"outDir": "./dist/src",
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./src/*"]
-		}
+			"@/*": [
+				"./src/*"
+			]
+		},
 	},
-	"lib": ["esnext", "NodeNext"],
-	"exclude": ["node_modules", "dist"]
+	"include": [
+		"src/**/*",
+		"tests/**/*",
+		"./rollup.config.ts"
+	],
+	"lib": [
+		"esnext",
+		"NodeNext"
+	],
+	"exclude": [
+		"node_modules",
+		"dist"
+	]
 }

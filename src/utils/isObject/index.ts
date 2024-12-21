@@ -1,4 +1,4 @@
-export type IsObject = {
+type IsObject = {
 	[key: string | symbol]: any
 }
 
