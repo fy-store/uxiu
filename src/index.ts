@@ -16,7 +16,7 @@ export const crateApp = async (config: Config = {}) => {
 		server: null
 	}
 
-	const readonlyCtx = readonly(ctx, { tip: 'error' })
+	const readonlyCtx = readonly.shallowReadonly(ctx, { tip: 'error' })
 
 	if (config.beforeInit) {
 		await config.beforeInit(readonlyCtx)
