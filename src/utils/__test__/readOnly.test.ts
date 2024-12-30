@@ -31,6 +31,7 @@ describe('readonly.shallowReadonly()', () => {
 		}
 
 		const target = readonly.shallowReadonly(origin)
+		// @ts-expect-error
 		target.a = 2
 		expect(target.a).toBe(1)
 	})
@@ -66,6 +67,7 @@ describe('readonly.shallowReadonly()', () => {
 		}
 
 		const target = readonly.shallowReadonly(origin)
+		// @ts-expect-error
 		delete target.c
 		expect(target).toEqual({
 			a: 1,
