@@ -30,7 +30,7 @@ export const readonly = <T extends Object>(target: T, options: Options = {}) => 
 		throw new TypeError(`"options" must be an object, ${String(options)}`)
 	}
 
-	const tip = Object.hasOwn(options, 'tip') ? options.tip : 'warn'
+	const tip = Object.hasOwn(options, 'tip') ? (options.tip) : 'warn'
 	if (!tipList.includes(tip)) {
 		throw new TypeError(`"options.tip" must be one of "error", "warn", "none", ${String(options.tip)}`)
 	}

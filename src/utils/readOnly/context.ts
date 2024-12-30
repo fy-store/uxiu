@@ -20,7 +20,7 @@ export const proxyCollection = new WeakMap<
 export const isShallowReadonly = (target: any) => {
 	const info = proxyCollection.get(target)
 	if (!info) return false
-	return proxyCollection.get(target).isShallowReadonly
+	return proxyCollection.get(target)?.isShallowReadonly
 }
 
 /**
@@ -32,7 +32,7 @@ export const isShallowReadonly = (target: any) => {
 export const isDeepReadonly = (target: any) => {
 	const info = proxyCollection.get(target)
 	if (!info) return false
-	return !proxyCollection.get(target).isShallowReadonly
+	return !proxyCollection.get(target)?.isShallowReadonly
 }
 
 /**

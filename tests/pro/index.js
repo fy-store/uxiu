@@ -1,13 +1,3 @@
-<<<<<<< HEAD
-console.clear()
-import { crateApp } from '../../dist/index.js'
-
-crateApp({
-	mounted(ctx) {
-		console.log(ctx.env)
-	}
-})
-=======
 import { extract, readonly } from '../../src/index.js'
 
 const target = {
@@ -31,4 +21,3 @@ const target = {
 const result = readonly(extract(target, ['g', 'a']))
 
 console.log('result', result)
->>>>>>> 671c46f (feat: 新增工具及优化)

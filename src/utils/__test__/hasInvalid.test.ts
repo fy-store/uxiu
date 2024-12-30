@@ -14,6 +14,6 @@ test('hasInvalid() 忽略', () => {
 })
 
 test('hasInvalid() 配置', () => {
-	expect(hasInvalid({ a: -0 }, null, { '-0': true })).toBe(true)
-	expect(hasInvalid({ a: 123 }, null, { '123': true })).toBe(true)
+	expect(hasInvalid({ a: -0 }, undefined, { '-0': true })).toBe(true)
+	expect(hasInvalid({ a: 123 }, undefined, { '123': true })).toBe(true)
 })
