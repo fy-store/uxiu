@@ -9,7 +9,7 @@ import tipMap from './tipMap.js'
  * @param target 包装目标
  * @param options 配置选项
  */
-export default <T extends Object>(target: T, options: Options = {}) => {
+export default <T extends Object>(target: T, options: Options = {}): Readonly<T> => {
 	if (!isReferenceValue(target)) {
 		throw new TypeError(`"target" must be an object, ${String(target)}`)
 	}
