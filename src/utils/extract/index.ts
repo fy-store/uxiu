@@ -22,7 +22,7 @@ export const extract = <T1 extends object, T2 extends (keyof T1)[]>(
 ): Pick<T1, T2[number]> => {
 	type Data = Pick<T1, T2[number]>
 	const data: Data = {} as Data
-	const { notValueWriteUndefined = true, containPrototype = true } = options || {}
+	const { notValueWriteUndefined = true, containPrototype = true } = options ?? {}
 	if (containPrototype) {
 		keys.forEach((key) => {
 			data[key] = target[key]

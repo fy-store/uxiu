@@ -16,7 +16,7 @@ const target = {
 }
 
 console.log(
-	hasInvalid(target, {
+	hasInvalid(target, null, {
 		// Infinity: false,
 		// '-Infinity': false,
 		// NaN: false,

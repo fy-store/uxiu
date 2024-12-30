@@ -9,7 +9,11 @@ test('hasInvalid()', () => {
 	expect(hasInvalid({ d: -0 })).toBe(false)
 })
 
+test('hasInvalid() 忽略', () => {
+	expect(hasInvalid({ a: undefined }, ['a'])).toBe(false)
+})
+
 test('hasInvalid() 配置', () => {
-	expect(hasInvalid({ a: -0 }, { '-0': true })).toBe(true)
-	expect(hasInvalid({ a: 123 }, { '123': true })).toBe(true)
+	expect(hasInvalid({ a: -0 }, null, { '-0': true })).toBe(true)
+	expect(hasInvalid({ a: 123 }, null, { '123': true })).toBe(true)
 })
