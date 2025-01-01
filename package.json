@@ -1,7 +1,7 @@
 {
 	"name": "uxiu",
 	"type": "module",
-	"version": "0.2.0-dev-1",
+	"version": "0.2.0-dev-2",
 	"description": "基于 koa 构建的 nodejs 服务基础框架",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
