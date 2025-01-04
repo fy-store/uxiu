@@ -8,7 +8,7 @@ export * from './utils/index.js'
  * 创建一个 koa 实例
  * @param config 配置选项
  */
-export const crateApp = async (config: Config = {}) => {
+export const createApp = async (config: Config = {}) => {
 	const ctx: MountedCtx = {
 		env: process.env.NODE_ENV === 'development' ? 'development' : 'production',
 		port: config.port || 3323,
@@ -54,4 +54,4 @@ export const crateApp = async (config: Config = {}) => {
 	})
 }
 
-export default crateApp
+export default createApp
