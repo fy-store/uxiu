@@ -93,9 +93,49 @@ export const readonly = <T extends Object>(target: T, options: Options = {}): Re
 	})
 	return proxy
 }
+
+/**
+ * 将引用数据包装为一个浅层只读引用
+ * - 如果目标已经是一个只读数据了则直接返回目标
+ * @param target 包装目标
+ * @param options 配置选项
+ */
 readonly.shallowReadonly = shallowReadonly
+
+/**
+ * 判断一个数据是否为深层只读
+ * - 若需判断是否为浅层只读应使用 readonly.isShallowReadonly()
+ * - 若只需判断是否为只读应使用 readonly.isReadonly()
+ * @param target 判断目标
+ */
 readonly.isDeepReadonly = isDeepReadonly
+
+/**
+ * 判断一个数据是否为浅层只读
+ * - 若需判断是否为深层只读应使用 readonly.isDeepReadonly()
+ * - 若只需判断是否为只读应使用 readonly.isReadonly()
+ * @param target 判断目标
+ */
 readonly.isShallowReadonly = isShallowReadonly
+
+/**
+ * 判断一个数据是否为只读
+ * - 若需判断是否为浅层只读应使用 readonly.isShallowReadonly()
+ * - 若需判断是否为深层只读应使用 readonly.isDeepReadonly()
+ * @param target 判断目标
+ */
 readonly.isReadonly = isReadonly
+
+/**
+ * 将一个只读数据转回原始数据
+ * - 转换失败将抛出错误
+ * @param target 目标
+ */
 readonly.toOrigin = toOrigin
+
+/**
+ * 获取只读数据的错误提示等级
+ * - 获取失败将抛出错误
+ * @param target 目标
+ */
 readonly.getTip = getTip
