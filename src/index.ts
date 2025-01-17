@@ -3,6 +3,7 @@ import Koa from 'koa'
 import { type MountedCtx, type Config } from '@/types/app.js'
 import { readonly } from '@/utils/index.js'
 export * from './utils/index.js'
+export * from './common/index.js'
 
 /**
  * 创建一个 koa 实例
@@ -38,7 +39,7 @@ export const createApp = async (config: Config = {}) => {
 	server.on('error', (error: any) => {
 		// 判断端口是否被占用
 		if (error?.code === 'EADDRINUSE' && mountPortErrorTip) {
-			console.log(`${port} 端口已被占用 !`)
+			console.error(`\x1b[31m${port} 端口已被占用 !\x1B[0m`)
 		}
 		if (config.onMountError) {
 			config.onMountError(error)
@@ -52,6 +53,8 @@ export const createApp = async (config: Config = {}) => {
 			await config.mounted(readonlyCtx)
 		}
 	})
+
+	return readonlyCtx
 }
 
 export default createApp
