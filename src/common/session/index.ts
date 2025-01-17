@@ -1,5 +1,5 @@
 import { isArray, isObject, readonly } from '@/utils/index.js'
-import type { JsonData, Options } from './types/index.js'
+import type { Options } from './types/index.js'
 import { clone, createId, createStore } from './utils/index.js'
 export * from './types/index.js'
 export { createId, clone }
@@ -36,7 +36,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param id 会话id
 		 * @returns 只读的会话数据
 		 */
-		async get<T extends JsonData>(id: string): Promise<Readonly<T>> {
+		async get<T extends object>(id: string): Promise<Readonly<T>> {
 			const data = await store.get(id)
 			if (!data) {
 				throw new Error(`id -> "${String(id)}" is not exist`)
@@ -62,7 +62,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param value 会话数据
 		 * @returns 只读的新的会话数据
 		 */
-		async set<T extends JsonData>(id: string, value: T): Promise<Readonly<T>> {
+		async set<T extends object>(id: string, value: T): Promise<Readonly<T>> {
 			if (!(await sessionStore.has(id))) {
 				throw new Error(`id -> "${String(id)}" is not exist`)
 			}
@@ -80,7 +80,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param value 会话数据, 必须符合 JSON 序列化, 且必须是对象
 		 * @returns 会话id
 		 */
-		async create(value: JsonData): Promise<string> {
+		async create(value: object): Promise<string> {
 			if (!isObject(value)) {
 				throw new Error(`value -> "${String(value)}" must be a object`)
 			}
@@ -95,10 +95,10 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param value 补丁数据
 		 * @returns 只读的新的会话数据
 		 */
-		async patch<T extends JsonData>(id: string, value: T): Promise<T> {
+		async patch<T extends object>(id: string, value: T): Promise<T> {
 			try {
 				const data = await sessionStore.get(id)
-				const newData = { ...data, ...clone(value) } as JsonData
+				const newData = { ...data, ...clone(value) }
 				return (await sessionStore.set(id, newData)) as T
 			} catch (error) {
 				throw new Error(`id -> "${String(id)}" is not exist`)
@@ -110,7 +110,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param id 会话id
 		 * @returns 被删除的会话数据
 		 */
-		async del<T extends JsonData>(id: string): Promise<T> {
+		async del<T extends object>(id: string): Promise<T> {
 			if (!(await sessionStore.has(id))) {
 				throw new Error(`id -> "${String(id)}" is not exist`)
 			}
@@ -123,7 +123,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param id 会话id
 		 * @returns 被删除的会话数据
 		 */
-		async delete<T extends JsonData>(id: string): Promise<T> {
+		async delete<T extends object>(id: string): Promise<T> {
 			return sessionStore.del(id)
 		},
 
@@ -133,7 +133,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * - id 会话id
 		 * - value 只读的会话数据
 		 */
-		async each(fn: (id: string, value: Readonly<JsonData>) => void): Promise<void> {
+		async each(fn: (id: string, value: Readonly<object>) => void): Promise<void> {
 			return await store.each((id, value) => {
 				fn(id, readonly(value))
 			})
