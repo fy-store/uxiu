@@ -1,14 +1,6 @@
-// export type JsonValue = string | number | boolean | null | JsonObject | JsonArray
-
-// export interface JsonObject {
-// 	[key: string]: JsonValue
-// }
-
-// export type JsonArray = JsonValue[]
-
-// export type JsonData = object
-
 export interface Store {
+	/** 添加数据 */
+	add(id: string, value: object): Promise<object>
 	/** 通过 id 获取数据 */
 	get(id: string): Promise<object>
 	/** 设置指定 id 的数据 */

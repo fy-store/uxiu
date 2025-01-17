@@ -19,6 +19,10 @@ export const clone = <T>(data: T): T => {
 export const createStore = (): Store => {
 	const map = new Map()
 	const store: Store = {
+		async add(id, value) {
+			map.set(id, value)
+			return map.get(id)
+		},
 		async get(id) {
 			return map.get(id)
 		},

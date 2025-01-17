@@ -85,7 +85,7 @@ export const createSessionStore = (options: Options = {}) => {
 				throw new Error(`value -> "${String(value)}" must be a object`)
 			}
 			const id = createId()
-			await store.set(id, clone(value))
+			await store.add(id, clone(value))
 			return id
 		},
 
