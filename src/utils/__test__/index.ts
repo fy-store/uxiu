@@ -1,30 +1,33 @@
-import { sleep, omit, hasEmpty, hasInvalid } from '../index.js'
+import { createCheck } from '../index.js'
 
-const target = {
-	num: 1,
-	num2: 0,
-	num3: -0,
-	// num4: Infinity,
-	// num5: -Infinity,
-	// num6: NaN,
-	str: 'str',
-	// str2: '',
-	bool: false,
-	bool2: true
-	// und: undefined,
-	// nu: null
+type Conf = {
+	name: string
+	age: number
+	sex: string
 }
 
-console.log(
-	hasInvalid(target, undefined, {
-		// Infinity: false,
-		// '-Infinity': false,
-		// NaN: false,
-		// undefined: false,
-		// null: false,
-		// 0: true,
-		// '-0': true,
-		// '': true,
-		// str: true
-	})
-)
+const data = {
+	name: 1,
+	age: 21,
+	sex: '男'
+}
+
+const check = createCheck<Conf>([
+	{
+		field: 'name',
+		required: false,
+		type: {
+			expect: 'string'
+		},
+		
+		range: {
+			expect: {
+				min: 0,
+				max: 100
+			}
+		}
+	}
+])
+
+// check(data)
+console.log(check(data).fail.msgList)
