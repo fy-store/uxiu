@@ -112,11 +112,13 @@ export default (fieldConfs: FieldConfs[], data: object) => {
 				let itemResult: ListItemCustom = null
 				if (isObject(customResult)) {
 					itemResult = {
+						name: isUndefined(customResult.message) ? '' : String(customResult.name),
 						result: Boolean(customResult.result),
 						message: isUndefined(customResult.message) ? '' : String(customResult.message)
 					}
 				} else {
 					itemResult = {
+						name: '',
 						result: Boolean(customResult),
 						message: ''
 					}
@@ -168,7 +170,8 @@ const confConditionMap: { [k in ConfFiledList[number]]: (conf: FieldConfs, info:
 	type(conf: FieldConfs, info: ListItem) {
 		const { type } = conf
 		const { data } = info
-		return type.checkFn(data)
+		if (type.checkFn.length === 0) return true
+		return type.checkFn.some((it) => it(data))
 	},
 
 	length(conf: FieldConfs, info: ListItem) {

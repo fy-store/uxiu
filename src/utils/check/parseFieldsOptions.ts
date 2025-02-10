@@ -1,11 +1,14 @@
 import { isArray } from '../isArray/index.js'
+import { isBigint } from '../isBigint/index.js'
 import { isBoolean } from '../isBoolean/index.js'
 import { isEffectiveNumber } from '../isEffectiveNumber/index.js'
 import { isEffectiveStrNumber } from '../isEffectiveStrNumber/index.js'
 import { isFunction } from '../isFunction/index.js'
+import { isNull } from '../isNull/index.js'
 import { isNumber } from '../isNumber/index.js'
 import { isObject } from '../isObject/index.js'
 import { isString } from '../isString/index.js'
+import { isSymbol } from '../isSymbol/index.js'
 import { isUndefined } from '../isUndefined/index.js'
 import type {
 	FieldOptions,
@@ -96,8 +99,17 @@ const typeExpect: TypeExpect[] = [
 	'effectiveStrNumber',
 	'effectiveStrInt',
 	'effectiveStrPositiveInt',
-	'string'
+	'string',
+	'boolean',
+	'null',
+	'undefined',
+	'array',
+	'object',
+	'symbol',
+	'bigint',
+	'function'
 ]
+
 const checkTypeMap: CheckTypeMap = {
 	any: () => true,
 	number: isNumber,
@@ -109,16 +121,24 @@ const checkTypeMap: CheckTypeMap = {
 	effectiveStrPositiveInt(data: any) {
 		return isEffectiveStrNumber(data) && Number.isInteger(+data) && +data > 0
 	},
-	string: isString
+	string: isString,
+	boolean: isBoolean,
+	null: isNull,
+	undefined: isUndefined,
+	array: isArray,
+	object: isObject,
+	symbol: isSymbol,
+	bigint: isBigint,
+	function: isFunction
 }
 const parseType = ({ type, field }: FieldOptions, i: number): TypeConf => {
 	if (isUndefined(type)) {
 		return {
 			use: false,
-			expect: 'any',
+			expect: ['any'],
 			success: '',
 			fail: '',
-			checkFn: checkTypeMap['any'],
+			checkFn: [checkTypeMap['any']],
 			transform: void 0,
 			verify: void 0
 		}
@@ -129,19 +149,32 @@ const parseType = ({ type, field }: FieldOptions, i: number): TypeConf => {
 	}
 
 	const { expect, success = '', fail = `"${field}" type must be a ${expect}`, transform, verify } = type
-
-	if (!typeExpect.includes(expect)) {
-		throwErr('type.expect', typeExpect.toString(), i)
+	let useExpect: TypeExpect[] = []
+	let useCheckFn: ((...args: any) => boolean)[] = []
+	if (isArray(expect)) {
+		expect.forEach((it, j) => {
+			if (!typeExpect.includes(it)) {
+				throwErr(`type.expect[${j}]`, typeExpect.toString(), i)
+			}
+			useCheckFn.push(checkTypeMap[it])
+		})
+		useExpect = expect
+	} else {
+		if (!typeExpect.includes(expect)) {
+			throwErr('type.expect', typeExpect.toString(), i)
+		}
+		useExpect = [expect]
+		useCheckFn = [checkTypeMap[expect]]
 	}
 
 	chekcHook(type, 'type', i)
 
 	return {
 		use: true,
-		expect,
+		expect: useExpect,
 		success,
 		fail,
-		checkFn: checkTypeMap[expect],
+		checkFn: useCheckFn,
 		transform,
 		verify
 	}

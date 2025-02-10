@@ -1,7 +1,6 @@
-import type { FieldsOptions, Options, Result } from './types/index.js'
+import type { FieldsOptions, Result } from './types/index.js'
 import { isArray } from '../isArray/index.js'
 import { isObject } from '../isObject/index.js'
-import { isUndefined } from '../isUndefined/index.js'
 import { readonly } from '../readonly/index.js'
 import parseFieldsOptions from './parseFieldsOptions.js'
 import verify, { confFiledList } from './verify.js'
@@ -12,14 +11,14 @@ import verify, { confFiledList } from './verify.js'
  * @param options 其他配置
  * @returns 检查器
  */
-export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOptions<T>, options?: Options) => {
+export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOptions<T>) => {
 	if (!isArray(fieldsOptions)) {
 		throw new TypeError('"options.fieldsOptions" must be an array')
 	}
 
-	if (!(isUndefined(options) || isObject(options))) {
-		throw new TypeError('"options" must be an object')
-	}
+	// if (!(isUndefined(options) || isObject(options))) {
+	// 	throw new TypeError('"options" must be an object')
+	// }
 
 	// 解析每一个字段配置, 生成字段配置对象
 	const fieldConfs = parseFieldsOptions(fieldsOptions as any)

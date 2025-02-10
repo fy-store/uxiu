@@ -17,9 +17,9 @@ const check = createCheck<Conf>([
 		field: 'name',
 		required: false,
 		type: {
-			expect: 'string'
+			expect: ['string', 'number']
 		},
-		
+
 		range: {
 			expect: {
 				min: 0,
@@ -29,5 +29,4 @@ const check = createCheck<Conf>([
 	}
 ])
 
-// check(data)
-console.log(check(data).fail.msgList)
+console.log(check(data))
