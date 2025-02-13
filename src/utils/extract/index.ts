@@ -32,6 +32,7 @@ export const extract = <T1 extends object, T2 extends (keyof T1)[]>(
 			if (Object.hasOwn(target, key)) {
 				data[key] = target[key]
 			} else if (notValueWriteUndefined) {
+				// @ts-ignore
 				data[key] = void 0
 			}
 		})
