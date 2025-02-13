@@ -1,3 +1,7 @@
+type AnyKeyObj = {
+	[k: string]: boolean
+}
+
 /**
  * hasInvalid() 配置选项
  */
@@ -20,7 +24,6 @@ interface VerifyConfig {
 	'-0'?: boolean
 	/** false 默认为 false */
 	false?: boolean
-	[key: string]: boolean
 }
 
 /**
@@ -34,7 +37,11 @@ interface VerifyConfig {
  * @param verifyConfig 验证配置
  * @returns 结果
  */
-export const hasInvalid = <T extends object>(target: T, ignoreField?: (keyof T)[], verifyConfig?: VerifyConfig) => {
+export const hasInvalid = <T extends object>(
+	target: T,
+	ignoreField?: (keyof T)[],
+	verifyConfig?: VerifyConfig & AnyKeyObj
+) => {
 	const config = Object.assign(
 		{
 			undefined: true,
@@ -74,3 +81,5 @@ export const hasInvalid = <T extends object>(target: T, ignoreField?: (keyof T)[
 				return handle(it)
 		  })
 }
+
+hasInvalid({ a: 1 }, ['a'], {  })
