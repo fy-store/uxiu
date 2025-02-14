@@ -73,13 +73,11 @@ export const hasInvalid = <T extends object>(
 
 	return Array.isArray(target)
 		? target.some((it, i) => {
-				if (ignoreFieldConfig.includes(String(i) as keyof T)) return false
-				return handle(it)
-		  })
+			if (ignoreFieldConfig.includes(String(i) as keyof T)) return false
+			return handle(it)
+		})
 		: Object.entries(target).some(([key, it]) => {
-				if (ignoreFieldConfig.includes(String(key) as keyof T)) return false
-				return handle(it)
-		  })
+			if (ignoreFieldConfig.includes(String(key) as keyof T)) return false
+			return handle(it)
+		})
 }
-
-hasInvalid({ a: 1 }, ['a'], {  })
