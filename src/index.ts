@@ -16,7 +16,7 @@ export const createApp = async (config: Config = {}) => {
 		port: config.port ?? 3323,
 		app: null,
 		server: null,
-		koaOptions: { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset }
+		koaOptions: readonly({ keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset })
 	}
 
 	const readonlyCtx = readonly.shallowReadonly(ctx, { tip: 'error' })

@@ -124,13 +124,7 @@ random.sign = readonly(sign, { sign: SIGN })
 /** a-z, A-Z, 数字, 符号列表 */
 random.all = readonly(all, { sign: SIGN })
 
-/**
- * 生成一个安全随机字符串
- * @param length 生成的字符串长度
- * @param strList 随机字符列表, 默认为 a-Z
- * - 通过 random.(az | AZ | num | sign | all) 获取常用的字符列表
- */
-random.randomStr = (length: number, strList: string[] | Readonly<string[]> = [...az, ...AZ]) => {
+const randomStr = (length: number, strList: string[] | Readonly<string[]> = [...az, ...AZ]) => {
 	const list = (() => {
 		try {
 			if (readonly.isReadonly(strList)) {
@@ -148,3 +142,11 @@ random.randomStr = (length: number, strList: string[] | Readonly<string[]> = [..
 	}
 	return result
 }
+
+/**
+ * 生成一个安全随机字符串
+ * @param length 生成的字符串长度
+ * @param strList 随机字符列表, 默认为 a-Z
+ * - 通过 random.(az | AZ | num | sign | all) 获取常用的字符列表
+ */
+random.randomStr = randomStr

@@ -24,7 +24,7 @@ type BaseCtx = {
 	 * koa 配置选项
 	 * - env uxiu 对env进行了特殊处理, 只能为 'production' | 'development' 默认为 'production', 通过环境变量 NODE_ENV 可更改为 'development'
 	 */
-	koaOptions: KoaOptions
+	koaOptions: Readonly<KoaOptions>
 }
 
 export type BeforeInitCtx = {
