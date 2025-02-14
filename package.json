@@ -1,7 +1,7 @@
 {
 	"name": "uxiu",
 	"type": "module",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"description": "基于 koa 构建的 nodejs 服务基础框架",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -29,7 +29,7 @@
 		"dev:dev": "cross-env NODE_ENV=development port=3323 tsx watch ./tests/dev/index.ts",
 		"dev:pro": "cross-env NODE_ENV=development port=3323 tsx watch ./tests/pro/index.js",
 		"pro": "node --watch ./tests/pro/index.js",
-		"build": "rollup --config rollup.config.ts --configPlugin typescript && exit 0",
+		"build": "rollup --config rollup.config.ts --configPlugin typescript",
 		"priview": "npm run build && npm run pro"
 	},
 	"devDependencies": {
@@ -52,8 +52,9 @@
 	"volta": {
 		"node": "20.17.0"
 	},
-	"dependencies": {
+	"peerDependencies": {
 		"koa": "^2.15.3",
-		"nanoid": "^5.0.9"
+		"nanoid": "^5.0.9",
+		"path-to-regexp": "^8.2.0"
 	}
 }

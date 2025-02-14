@@ -10,11 +10,13 @@ export * from './common/index.js'
  * @param config 配置选项
  */
 export const createApp = async (config: Config = {}) => {
+	const { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset } = config.koaOptions ?? {}
 	const ctx: MountedCtx = {
 		env: process.env.NODE_ENV === 'development' ? 'development' : 'production',
-		port: config.port || 3323,
+		port: config.port ?? 3323,
 		app: null,
-		server: null
+		server: null,
+		koaOptions: { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset }
 	}
 
 	const readonlyCtx = readonly.shallowReadonly(ctx, { tip: 'error' })
@@ -23,7 +25,7 @@ export const createApp = async (config: Config = {}) => {
 		await config.beforeInit(readonlyCtx)
 	}
 
-	const app = new Koa({ env: ctx.env })
+	const app = new Koa({ ...ctx.koaOptions, env: ctx.env, })
 	ctx.app = app
 	if (config.inited) {
 		await config.inited(readonlyCtx)

@@ -9,9 +9,11 @@ const config: RollupOptions[] = [
 	{
 		input: './src/index.ts',
 		output: {
-			dir: './dist',
+			file: './dist/index.js',
 			format: 'es'
 		},
+
+		external: ['nanoid', 'koa'],
 
 		// ignore error see https://github.com/rollup/plugins/issues/1662
 		plugins: [
@@ -38,7 +40,7 @@ const config: RollupOptions[] = [
 	{
 		input: './src/index.ts',
 		output: {
-			dir: './dist',
+			file: './dist/index.d.ts',
 			format: 'es'
 		},
 
