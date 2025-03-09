@@ -186,6 +186,7 @@ describe('readonly()', () => {
 		}
 
 		const target = readonly(origin)
+		// @ts-ignore
 		target.c.c1 = 2
 		expect(target.c.c1).toBe(3)
 	})
@@ -197,6 +198,7 @@ describe('readonly()', () => {
 		}
 
 		const target = readonly(origin)
+		// @ts-ignore
 		target.c[c1] = 2
 		expect(target.c[c1]).toBe(3)
 	})
@@ -230,6 +232,7 @@ describe('readonly()', () => {
 		}
 
 		const target = readonly(origin)
+		// @ts-ignore
 		delete target.c.c1
 		expect(target).toEqual({
 			c: { c1: 3 }
@@ -254,6 +257,7 @@ describe('readonly()', () => {
 		})
 
 		const target = readonly(origin)
+		// @ts-ignore
 		delete target.c.c1
 		expect(target).toEqual({ c: { c1: 3 } })
 	})
