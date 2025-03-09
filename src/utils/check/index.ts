@@ -13,7 +13,7 @@ import { isFunction } from '../isFunction/index.js'
  * @param options 其他配置
  * @returns 检查器
  */
-export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOptions<T>, options?: Options) => {
+export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOptions<T>, options: Options = {}) => {
 	if (!isArray(fieldsOptions)) {
 		throw new TypeError("'options.fieldsOptions' must be an array")
 	}
