@@ -11,7 +11,7 @@ import {
 } from './context.js'
 import { isReferenceValue } from '../isReferenceValue/index.js'
 import { isFunction } from '../isFunction/index.js'
-import { type Options } from './types/index.js'
+import type { DeepReadonly, Options } from './types/index.js'
 import tipMap from './tipMap.js'
 
 /**
@@ -21,7 +21,7 @@ import tipMap from './tipMap.js'
  * @param target 包装目标
  * @param options 配置选项
  */
-export const readonly = <T extends Object>(target: T, options: Options = {}): Readonly<T> => {
+export const readonly = <T extends Object>(target: T, options: Options = {}): DeepReadonly<T> => {
 	if (!isReferenceValue(target)) {
 		throw new TypeError(`"target" must be an object, ${String(target)}`)
 	}

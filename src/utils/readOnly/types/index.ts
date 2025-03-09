@@ -4,3 +4,7 @@ export type Options = {
 	/** 错误提示等级 */
 	tip?: 'none' | 'warn' | 'error'
 }
+
+export type DeepReadonly<T> = {
+	readonly [P in keyof T]: T[P] extends object ? DeepReadonly<T[P]> : T[P]
+}
