@@ -1,8 +1,7 @@
 import Koa from 'koa'
 import http from 'http'
-export type { DeepReadonly } from '@/utils/readonly/types/index.js'
 
-type KoaOptions = {
+export type KoaOptions = {
 	/** 签名 cookie 密钥数组 */
 	keys?: string[]
 	/** 当为 true 时信任代理标头字段 */
@@ -16,7 +15,7 @@ type KoaOptions = {
 	// asyncLocalStorage?: boolean;
 }
 
-type BaseCtx = {
+export type BaseCtx = {
 	/** 挂载的端口 */
 	port: number
 	/** 环境模式, NODE_ENV */

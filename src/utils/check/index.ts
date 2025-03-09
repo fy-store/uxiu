@@ -1,9 +1,11 @@
-import type { FieldsOptions, Result } from './types/index.js'
+import type { FieldsOptions, Options, Result } from './types/index.js'
 import { isArray } from '../isArray/index.js'
 import { isObject } from '../isObject/index.js'
 import { readonly } from '../readonly/index.js'
 import parseFieldsOptions from './parseFieldsOptions.js'
 import verify, { confFiledList } from './verify.js'
+import { isUndefined } from '../isUndefined/index.js'
+import { isFunction } from '../isFunction/index.js'
 
 /**
  * 创建一个检查器
@@ -11,14 +13,22 @@ import verify, { confFiledList } from './verify.js'
  * @param options 其他配置
  * @returns 检查器
  */
-export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOptions<T>) => {
+export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOptions<T>, options?: Options) => {
 	if (!isArray(fieldsOptions)) {
-		throw new TypeError('"options.fieldsOptions" must be an array')
+		throw new TypeError("'options.fieldsOptions' must be an array")
 	}
 
-	// if (!(isUndefined(options) || isObject(options))) {
-	// 	throw new TypeError('"options" must be an object')
-	// }
+	if (!(isUndefined(options) || isObject(options))) {
+		throw new TypeError("'options' must be an object")
+	}
+
+	if (!(isUndefined(options.beforeCheck) || isFunction(options.beforeCheck))) {
+		throw new TypeError("'options.beforeCheck' must be an function")
+	}
+
+	if (!(isUndefined(options.beforeGetData) || isFunction(options.beforeGetData))) {
+		throw new TypeError("'options.beforeGetData' must be an function")
+	}
 
 	// 解析每一个字段配置, 生成字段配置对象
 	const fieldConfs = parseFieldsOptions(fieldsOptions as any)
@@ -29,8 +39,12 @@ export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOpt
 	 * @returns 检查结果
 	 */
 	return (data: object): Result => {
+		if (options.beforeCheck) {
+			data = options.beforeCheck(data)
+		}
+
 		if (!isObject(data)) {
-			throw new TypeError('"data" must be an object')
+			throw new TypeError("'data' must be an object")
 		}
 
 		// 校验数据
@@ -43,6 +57,16 @@ export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOpt
 
 		const resultInfo: Result = {
 			result,
+			getData<T = any>(handle: (info: Result) => any): T {
+				let newResult: any = data
+				if (options.beforeGetData) {
+					newResult = options.beforeGetData(resultInfo)
+				}
+				if (handle) {
+					newResult = handle(resultInfo)
+				}
+				return newResult
+			},
 			success: {
 				count: successList.length,
 				get list() {

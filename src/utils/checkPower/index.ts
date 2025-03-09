@@ -4,37 +4,14 @@ import { isObject } from '../isObject/index.js'
 import { isString } from '../isString/index.js'
 import { readonly } from '../readonly/index.js'
 import { pathToRegexp } from 'path-to-regexp'
+import type { Methods } from './types/index.js'
 
-export interface Identity<T> {
+export interface Identity {
 	// use?: (keyof T)[]
 	base?: string
 	router?: Route[]
 	whiteRouter?: Route[]
 }
-
-export type Methods =
-	| 'GET'
-	| 'POST'
-	| 'PUT'
-	| 'DELETE'
-	| 'PATCH'
-	| 'HEAD'
-	| 'OPTIONS'
-	| 'CONNECT'
-	| 'TRACE'
-	| 'LINK'
-	| 'UNLINK'
-	| 'get'
-	| 'post'
-	| 'put'
-	| 'delete'
-	| 'patch'
-	| 'head'
-	| 'options'
-	| 'connect'
-	| 'trace'
-	| 'link'
-	| 'unlink'
 
 export interface Route {
 	/** 允许的路径 */
@@ -80,7 +57,7 @@ export type UseConfig<T> = {
 
 export const createCheckPower = <T extends Record<string, any>>(
 	config: {
-		[K in keyof T]: Identity<T>
+		[K in keyof T]: Identity
 	}
 	// options?: Options
 ) => {
@@ -137,7 +114,7 @@ export const createCheckPower = <T extends Record<string, any>>(
 		 * @params identity 身份
 		 * @params method 方法
 		 * @params path 路径
-		*/
+		 */
 		verify(identity: keyof T, method: Methods, path: string) {
 			const useIdenttiy = getIdentity(identity, method, path)
 			if (!useIdenttiy) {
@@ -165,7 +142,7 @@ export const createCheckPower = <T extends Record<string, any>>(
 		 * @params identity 身份
 		 * @params method 方法
 		 * @params path 路径
-		*/
+		 */
 		hasRouter(identity: keyof T, method: Methods, path: string) {
 			const useIdenttiy = getIdentity(identity, method, path)
 			if (!useIdenttiy) {
@@ -185,7 +162,7 @@ export const createCheckPower = <T extends Record<string, any>>(
 		 * @params identity 身份
 		 * @params method 方法
 		 * @params path 路径
-		*/
+		 */
 		hasWhiteRouter(identity: keyof T, method: Methods, path: string) {
 			const useIdenttiy = getIdentity(identity, method, path)
 			if (!useIdenttiy) {

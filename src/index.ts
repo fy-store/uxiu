@@ -1,6 +1,6 @@
 import http from 'http'
 import Koa from 'koa'
-import { type MountedCtx, type Config } from '@/types/app.js'
+import type { MountedCtx, Config } from '@/types/app.js'
 import { readonly } from '@/utils/index.js'
 export * from './utils/index.js'
 export * from './common/index.js'
@@ -16,7 +16,7 @@ export const createApp = async (config: Config = {}) => {
 		port: config.port ?? 3323,
 		app: null,
 		server: null,
-		koaOptions: readonly({ keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset })
+		koaOptions: readonly.shallowReadonly({ keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset })
 	}
 
 	const readonlyCtx = readonly.shallowReadonly(ctx, { tip: 'error' })
@@ -25,7 +25,7 @@ export const createApp = async (config: Config = {}) => {
 		await config.beforeInit(readonlyCtx)
 	}
 
-	const app = new Koa({ ...ctx.koaOptions, env: ctx.env, })
+	const app = new Koa({ ...ctx.koaOptions, env: ctx.env })
 	ctx.app = app
 	if (config.inited) {
 		await config.inited(readonlyCtx)

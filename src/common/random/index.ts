@@ -1,4 +1,5 @@
 import { readonly } from '@/utils/index.js'
+import type { DeepReadonly } from '@/utils/readonly/types/index.js'
 import { randomInt } from 'crypto'
 
 /**
@@ -124,7 +125,10 @@ random.sign = readonly(sign, { sign: SIGN })
 /** a-z, A-Z, 数字, 符号列表 */
 random.all = readonly(all, { sign: SIGN })
 
-const randomStr = (length: number, strList: string[] | Readonly<string[]> = [...az, ...AZ]) => {
+const randomStr = (
+	length: number,
+	strList: string[] | Readonly<string[]> | DeepReadonly<string[]> = [...az, ...AZ]
+) => {
 	const list = (() => {
 		try {
 			if (readonly.isReadonly(strList)) {

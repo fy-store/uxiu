@@ -4,7 +4,7 @@ const log = (() => {
 	} else {
 		return {
 			warn(...data: any[]) {
-				throw new Error(`"console.warn()" not existent, "readonly()" prevent missing reminders, therefore throw Error ! ${data[0]}`)
+				throw new Error(`'console.warn()' not existent, 'readonly()' prevent missing reminders, therefore throw Error ! ${data[0]}`)
 			},
 			error(...data: any[]) {
 				throw new Error(data[0])

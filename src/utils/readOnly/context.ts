@@ -53,7 +53,7 @@ export const isReadonly = (target: any) => {
 export const toOrigin = <T extends object>(target: T, sign?: any): T => {
 	const info = proxyCollection.get(target)
 	if (!info) {
-		throw new Error('"target" is not readonly')
+		throw new Error('\'target\' is not readonly')
 	}
 
 	if (sign === SYSTEM_SIGN) {
@@ -61,7 +61,7 @@ export const toOrigin = <T extends object>(target: T, sign?: any): T => {
 	}
 
 	if (!Object.is(info.sign, sign)) {
-		throw new Error('"sign" is not match')
+		throw new Error('\'sign\' is not match')
 	}
 	return info.data
 }
@@ -76,7 +76,7 @@ export const tipList = ['error', 'warn', 'none']
 export const getTip = (target: any): Options['tip'] => {
 	const info = proxyCollection.get(target)
 	if (!info) {
-		throw new Error('"target" is not readonly')
+		throw new Error('\'target\' is not readonly')
 	}
 	return info.tip
 }

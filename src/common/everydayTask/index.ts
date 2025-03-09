@@ -1,28 +1,4 @@
-/**
- * 定时任务配置
- */
-interface TimedTasksOptions {
-	/**
-	 * 时, 0-59, 默认为 0
-	 */
-	hour?: number
-	/**
-	 * 分, 0-59, 默认为 0
-	 */
-	minute?: number
-	/**
-	 * 秒, 0-59, 默认为 0
-	 */
-	second?: number
-	/**
-	 * 毫秒, 0-999, 默认为 0
-	 */
-	millisecond?: number
-	/**
-	 * 如果设置的时间执行点已经过去, 是否立即触发一遍任务, 默认为 false
-	 */
-	exceedImmediatelyExecute?: boolean
-}
+import type { TimedTasksOptions } from './types/index.js'
 
 /**
  * 每日定时任务
@@ -66,7 +42,7 @@ export const everydayTask = (callback: (clearTimer: () => void) => void, options
 		config.millisecond > 999
 	) {
 		throw new Error(
-			'Invalid time configuration: hour must be between 0 and 23, minute and second between 0 and 59, millisecond between 0 and 999'
+			`Invalid time configuration: 'hour' must be between 0 and 23, 'minute' and 'second' between 0 and 59, 'millisecond' between 0 and 999`
 		)
 	}
 

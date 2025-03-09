@@ -11,11 +11,11 @@ import tipMap from './tipMap.js'
  */
 export default <T extends Object>(target: T, options: Options = {}): Readonly<T> => {
 	if (!isReferenceValue(target)) {
-		throw new TypeError(`"target" must be an object, ${String(target)}`)
+		throw new TypeError(`'target' must be an object, ${String(target)}`)
 	}
 
 	if (!isReferenceValue(options)) {
-		throw new TypeError(`"options" must be an object, ${String(options)}`)
+		throw new TypeError(`'options' must be an object, ${String(options)}`)
 	}
 
 	if (isReadonly(target)) {
@@ -24,7 +24,7 @@ export default <T extends Object>(target: T, options: Options = {}): Readonly<T>
 
 	const tip = Object.hasOwn(options, 'tip') ? options.tip : 'warn'
 	if (!tipList.includes(tip)) {
-		throw new TypeError(`"options.tip" must be one of "error", "warn", "none", ${String(options.tip)}`)
+		throw new TypeError(`'options.tip' must be one of 'error', 'warn', 'none', ${String(options.tip)}`)
 	}
 	const newOptions = {
 		sign: Object.hasOwn(options, 'sign') ? options.sign : SYSTEM_SIGN,
@@ -38,19 +38,19 @@ export default <T extends Object>(target: T, options: Options = {}): Readonly<T>
 
 		set(target, p, newValue) {
 			tipMap[newOptions.tip](
-				`"target" is readonly, can not set property "${String(p)}" to "${String(newValue)}"`,
+				`'target' is readonly, can not set property '${String(p)}' to '${String(newValue)}'`,
 				target
 			)
 			return true
 		},
 
 		deleteProperty(target, p) {
-			tipMap[newOptions.tip](`"target" is readonly, can not delete property "${String(p)}"`, target)
+			tipMap[newOptions.tip](`'target' is readonly, can not delete property '${String(p)}'`, target)
 			return true
 		},
 
 		defineProperty(target, property) {
-			tipMap[newOptions.tip](`"target" is readonly, can not define property "${String(property)}"`, target)
+			tipMap[newOptions.tip](`'target' is readonly, can not define property '${String(property)}'`, target)
 			return true
 		}
 	})

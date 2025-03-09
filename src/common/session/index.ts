@@ -1,5 +1,6 @@
-import { isArray, isObject, readonly } from '@/utils/index.js'
 import type { Options } from './types/index.js'
+import type { DeepReadonly } from '@/utils/readonly/types/index.js'
+import { isArray, isObject, readonly } from '@/utils/index.js'
 import { clone, createId, createStore } from './utils/index.js'
 export * from './types/index.js'
 export { createId, clone }
@@ -36,10 +37,10 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param id 会话id
 		 * @returns 只读的会话数据
 		 */
-		async get<T extends object>(id: string): Promise<Readonly<T>> {
+		async get<T extends object>(id: string): Promise<DeepReadonly<T>> {
 			const data = await store.get(id)
 			if (!data) {
-				throw new Error(`id -> "${String(id)}" is not exist`)
+				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
 			return readonly(data as T)
 		},
@@ -62,13 +63,13 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param value 会话数据
 		 * @returns 只读的新的会话数据
 		 */
-		async set<T extends object>(id: string, value: T): Promise<Readonly<T>> {
+		async set<T extends object>(id: string, value: T): Promise<DeepReadonly<T>> {
 			if (!(await sessionStore.has(id))) {
-				throw new Error(`id -> "${String(id)}" is not exist`)
+				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
 
 			if (!isObject(value)) {
-				throw new Error(`value -> "${String(value)}" must be a object`)
+				throw new Error(`value -> '${String(value)}' must be a object`)
 			}
 
 			const data = clone(value)
@@ -82,7 +83,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 */
 		async create(value: object): Promise<string> {
 			if (!isObject(value)) {
-				throw new Error(`value -> "${String(value)}" must be a object`)
+				throw new Error(`value -> '${String(value)}' must be a object`)
 			}
 			const id = createId()
 			await store.add(id, clone(value))
@@ -101,7 +102,7 @@ export const createSessionStore = (options: Options = {}) => {
 				const newData = { ...data, ...clone(value) }
 				return (await sessionStore.set(id, newData)) as T
 			} catch (error) {
-				throw new Error(`id -> "${String(id)}" is not exist`)
+				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
 		},
 
@@ -112,7 +113,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 */
 		async del<T extends object>(id: string): Promise<T> {
 			if (!(await sessionStore.has(id))) {
-				throw new Error(`id -> "${String(id)}" is not exist`)
+				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
 			return (await store.del(id)) as T
 		},

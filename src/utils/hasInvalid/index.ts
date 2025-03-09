@@ -1,30 +1,4 @@
-type AnyKeyObj = {
-	[k: string]: boolean
-}
-
-/**
- * hasInvalid() 配置选项
- */
-interface VerifyConfig {
-	/** undefined 默认为 true */
-	undefined?: boolean
-	/** null 默认为 true */
-	null?: boolean
-	/** NaN 默认为 true */
-	NaN?: boolean
-	/** Infinity 默认为 true */
-	Infinity?: boolean
-	/** -Infinity 默认为 true */
-	'-Infinity'?: boolean
-	/** '' 默认为 false */
-	''?: boolean
-	/** 0 默认为 false */
-	'0'?: boolean
-	/** -0 默认为 false */
-	'-0'?: boolean
-	/** false 默认为 false */
-	false?: boolean
-}
+import type { AnyKeyObj, VerifyConfig } from './types/index.js'
 
 /**
  * 判断一个数组中或对象上是否存在无效值
@@ -49,10 +23,6 @@ export const hasInvalid = <T extends object>(
 			NaN: true,
 			Infinity: true,
 			'-Infinity': true
-			// '': false,
-			// '0': false,
-			// '-0': false,
-			// false: false
 		},
 		verifyConfig ?? {}
 	)
@@ -73,11 +43,11 @@ export const hasInvalid = <T extends object>(
 
 	return Array.isArray(target)
 		? target.some((it, i) => {
-			if (ignoreFieldConfig.includes(String(i) as keyof T)) return false
-			return handle(it)
-		})
+				if (ignoreFieldConfig.includes(String(i) as keyof T)) return false
+				return handle(it)
+		  })
 		: Object.entries(target).some(([key, it]) => {
-			if (ignoreFieldConfig.includes(String(key) as keyof T)) return false
-			return handle(it)
-		})
+				if (ignoreFieldConfig.includes(String(key) as keyof T)) return false
+				return handle(it)
+		  })
 }

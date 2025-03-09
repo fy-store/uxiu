@@ -1,3 +1,5 @@
+import type { DeepReadonly } from '@/utils/readonly/types/index.js'
+
 export type HookOptionsVerifyCtx = {
 	/** 校验的字段 */
 	field: string
@@ -74,7 +76,7 @@ export type Custom = (
 	/** 字段数据 */
 	data: any,
 	/** 校验上下文 */
-	ctx: Readonly<CustomCtx>
+	ctx: DeepReadonly<CustomCtx>
 ) =>
 	| boolean
 	| {
@@ -105,8 +107,20 @@ export interface FieldOptions<T = Record<string, string>> {
 
 export type FieldsOptions<T> = FieldOptions<T>[]
 
-// 扩展选项, 待补充
-export interface Options {}
+// 扩展选项
+export interface Options {
+	/**
+	 * 校验前处理函数
+	 * @param data 校验目标数据
+	 */
+	beforeCheck?: (data: Record<string | symbol, any>) => Record<string | symbol, any>
+	/**
+	 * 结果数据调用 getData() 前钩子函数
+	 * @param result
+	 * @returns
+	 */
+	beforeGetData?: (result: Result) => any
+}
 
 export type FiledConf = {
 	/** 规则是否生效 */
@@ -116,7 +130,7 @@ export type FiledConf = {
 	/** 校验失败消息 */
 	fail: string
 	/** 钩子函数: 校验前处理函数 */
-	transform?: (data: any, fieldOptions: FieldOptions) => any
+	transform?: (data: any, fieldOptions: DeepReadonly<FieldOptions>) => any
 	/** 钩子函数: 自定义校验函数, 用于控制/拓展系统校验函数, 返回 true 则通过, 返回 false 则失败 */
 	verify?: (
 		/** 字段数据 */
@@ -124,7 +138,7 @@ export type FiledConf = {
 		/** 系统校验函数, 调用该函数不会影响系统数据 */
 		checkFn: () => boolean,
 		/** 校验上下文 */
-		ctx: HookOptionsVerifyCtx
+		ctx: DeepReadonly<HookOptionsVerifyCtx>
 	) =>
 		| boolean
 		| {
@@ -243,6 +257,12 @@ export type MessageMap = {
 }
 
 export interface Result {
+	/**
+	 * 获取校验后的数据
+	 * - 该数据会经 options.beforeGetData() 处理
+	 * - @param handle 前置处理函数
+	 */
+	getData: <T = any>(handle?: (info: Result) => any) => T
 	/** 校验结果 */
 	result: boolean
 	/** 成功的校验字段信息 */
@@ -270,5 +290,5 @@ export interface Result {
 	/** 所有校验的字段信息 */
 	verifyList: ListItem[]
 	/** 解析后的字段配置 */
-	fieldConfs: readonly FieldConfs[]
+	fieldConfs: DeepReadonly<FieldConfs[]>
 }

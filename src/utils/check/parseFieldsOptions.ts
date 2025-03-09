@@ -27,9 +27,9 @@ import type {
 
 export const throwErr = (field: string, needType: string, fromIndex: number) => {
 	throw new TypeError(
-		`"fieldsOptions -> ${field ? 'item.' + field : ''}" must be a ${needType}, error from "fieldsOptions[${fromIndex}]${
+		`'fieldsOptions -> ${field ? 'item.' + field : ''}' must be a ${needType}, error from 'fieldsOptions[${fromIndex}]${
 			field ? '.' + field : ''
-		}"`
+		}'`
 	)
 }
 
@@ -82,7 +82,7 @@ const parseRequired = ({ required }: FieldOptions, i: number): RequiredConf => {
 
 const parseRequiredFail = ({ requiredFail, field }: FieldOptions, i: number): string => {
 	if (isUndefined(requiredFail)) {
-		return `"${field}" is required`
+		return `'${field}' is required`
 	}
 
 	if (!isString(requiredFail)) {
@@ -202,7 +202,7 @@ const parseLength = ({ length, field }: FieldOptions, i: number): LengthConf => 
 	let {
 		expect,
 		success = '',
-		fail = `"${field}" length must >= ${expect.min} and <= ${expect.max}`,
+		fail = `'${field}' length must >= ${expect.min} and <= ${expect.max}`,
 		transform,
 		verify
 	} = length
@@ -265,7 +265,7 @@ const parseRange = ({ range, field }: FieldOptions, i: number): RangeConf => {
 	let {
 		expect,
 		success = '',
-		fail = `"${field}" range must >= ${expect.min} and <= ${expect.max}`,
+		fail = `'${field}' range must >= ${expect.min} and <= ${expect.max}`,
 		transform,
 		verify
 	} = range
