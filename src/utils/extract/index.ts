@@ -15,24 +15,43 @@ export const extract = <T1 extends object, T2 extends keyof T1>(
 	type Data = Pick<T1, T2>
 	const data: Data = {} as Data
 	const { notValueWriteUndefined = true, containPrototype = true } = options ?? {}
+	// 包含原型
 	if (containPrototype) {
-		keys.forEach((key) => {
-			if (notValueWriteUndefined) {
+		// 目标不存在写入 undefined
+		if (notValueWriteUndefined) {
+			keys.forEach((key) => {
 				data[key] = target[key]
-			} else {
-				if (key in data) {
+			})
+		}
+		// 目标不存在不允许写入 undefined
+		else {
+			keys.forEach((key) => {
+				if (key in target) {
 					data[key] = target[key]
 				}
-			}
-		})
-	} else {
-		keys.forEach((key) => {
-			if (Object.hasOwn(target, key)) {
-				data[key] = target[key]
-			} else if (notValueWriteUndefined) {
-				data[key] = void 0
-			}
-		})
+			})
+		}
+	}
+	// 不包含原型
+	else {
+		// 目标不存在写入 undefined
+		if (notValueWriteUndefined) {
+			keys.forEach((key) => {
+				if (Object.hasOwn(target, key)) {
+					data[key] = target[key]
+				} else {
+					data[key] = void 0
+				}
+			})
+		}
+		// 目标不存在不允许写入 undefined
+		else {
+			keys.forEach((key) => {
+				if (Object.hasOwn(target, key)) {
+					data[key] = target[key]
+				}
+			})
+		}
 	}
 
 	return data

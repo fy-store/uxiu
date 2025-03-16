@@ -1,4 +1,4 @@
-import { createCheck } from '../index.js'
+import { createCheck, extract } from '../index.js'
 
 type Conf = {
 	name: string
@@ -29,4 +29,4 @@ const check = createCheck<Conf>([
 	}
 ])
 
-console.log(check(data))
+// console.log(check(data))

@@ -19,6 +19,18 @@ test('extract() not prototype', () => {
 	expect(result).toStrictEqual({ a: 1, b: 2, c: void 0 })
 })
 
+test('extract() notValueWriteUndefined set false', () => {
+	const prototype = { c: 3 }
+	type Data = { a: number; b: number; c: number }
+	const target = { a: 1, b: 2 } as unknown as Data
+	Object.setPrototypeOf(target, prototype)
+	// @ts-ignore
+	const result = extract<Data, keyof Data>(target, ['a', 'b', 'c', 'd'], {
+		notValueWriteUndefined: false
+	})
+	expect(result).toStrictEqual({ a: 1, b: 2, c: 3 })
+})
+
 test('extract() not prototype notValueWriteUndefined set false', () => {
 	const prototype = { c: 3 }
 	type Data = { a: number; b: number; c: number }
