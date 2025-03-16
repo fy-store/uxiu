@@ -7,24 +7,29 @@ import type { ExtractOptions } from './types/index.js'
  * @param options 配置选项
  * @returns 提取后新的数据
  */
-export const extract = <T1 extends object, T2 extends (keyof T1)[]>(
+export const extract = <T1 extends object, T2 extends keyof T1>(
 	target: T1,
-	keys: T2,
+	keys: T2[],
 	options?: ExtractOptions
-): Pick<T1, T2[number]> => {
-	type Data = Pick<T1, T2[number]>
+): Pick<T1, T2> => {
+	type Data = Pick<T1, T2>
 	const data: Data = {} as Data
 	const { notValueWriteUndefined = true, containPrototype = true } = options ?? {}
 	if (containPrototype) {
 		keys.forEach((key) => {
-			data[key] = target[key]
+			if (notValueWriteUndefined) {
+				data[key] = target[key]
+			} else {
+				if (key in data) {
+					data[key] = target[key]
+				}
+			}
 		})
 	} else {
 		keys.forEach((key) => {
 			if (Object.hasOwn(target, key)) {
 				data[key] = target[key]
 			} else if (notValueWriteUndefined) {
-				// @ts-ignore
 				data[key] = void 0
 			}
 		})
