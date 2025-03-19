@@ -26,4 +26,4 @@ pnpx uxiu-cli
 yarn dlx uxiu-cli
 #or
 npx uxiu-cli
-``
+```
