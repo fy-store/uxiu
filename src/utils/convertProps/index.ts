@@ -2,8 +2,8 @@ type Target<T1, T2> = {
 	[K in keyof T1 as K extends keyof T2 ? never : K]: T1[K]
 }
 
-type Props<T1, T2> = {
-	[K in keyof T2]: T2[K] extends (value: any) => infer R ? R : T2[K]
+type Props<T> = {
+	[K in keyof T]: T[K] extends (value: any) => infer R ? R : T[K]
 }
 
 /**
@@ -15,7 +15,7 @@ type Props<T1, T2> = {
 export const convertProps = <T1 extends object, T2 extends Record<string, any>>(
 	target: T1,
 	props: { [k in keyof T1]?: (value: T1[k]) => any } | T2
-): Target<T1, T2> & Props<T1, T2> => {
+): Target<T1, T2> & Props<T2> => {
 	const newObj: any = { ...target }
 	const keys = Object.keys(props)
 	keys.forEach((k) => {
@@ -38,7 +38,7 @@ export const convertProps = <T1 extends object, T2 extends Record<string, any>>(
 convertProps.effect = <T1 extends object, T2 extends Record<string, any>>(
 	target: T1,
 	props: { [k in keyof T1]?: (value: T1[k]) => any } | T2
-): Target<T1, T2> & Props<T1, T2> => {
+): Target<T1, T2> & Props<T2> => {
 	const newObj: any = target
 	const keys = Object.keys(props)
 	keys.forEach((k) => {
