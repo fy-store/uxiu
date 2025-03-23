@@ -4,6 +4,7 @@ import type { MountedCtx, Config } from '@/types/app.js'
 import { readonly } from '@/utils/index.js'
 export * from './utils/index.js'
 export * from './common/index.js'
+export type * as Types from './types/index.js'
 
 /**
  * 创建一个 koa 实例
