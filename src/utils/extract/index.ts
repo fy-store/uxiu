@@ -7,7 +7,7 @@ import type { ExtractOptions } from './types/index.js'
  * @param options 配置选项
  * @returns 提取后新的数据
  */
-export const extract = <T1 extends object, T2 extends keyof T1>(
+export const extract = <T1 extends object, T2 extends keyof T1 = keyof T1>(
 	target: T1,
 	keys: T2[],
 	options?: ExtractOptions
