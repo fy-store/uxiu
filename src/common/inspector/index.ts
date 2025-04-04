@@ -118,7 +118,7 @@ export function getConf<T = any>(rules: Rule<T>[]): RuleConf<T>[] {
  * 规则序列化
  * @param rules 规则列表
  */
-export function RulesToSerialize<T = any>(rules: Rule<T>[]): RuleSerialize<T>[] {
+export function rulesToSerialize<T = any>(rules: Rule<T>[]): RuleSerialize<T>[] {
 	return rules.map((rule) => {
 		const result: RuleSerialize<T> = {
 			methods: [...rule.methods],
