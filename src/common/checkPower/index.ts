@@ -1,8 +1,8 @@
 import Path from 'path/posix'
-import { isArray } from '../isArray/index.js'
-import { isObject } from '../isObject/index.js'
-import { isString } from '../isString/index.js'
-import { readonly } from '../readonly/index.js'
+import { isArray } from '../../utils/isArray/index.js'
+import { isObject } from '../../utils/isObject/index.js'
+import { isString } from '../../utils/isString/index.js'
+import { readonly } from '../../utils/readonly/index.js'
 import { pathToRegexp } from 'path-to-regexp'
 import type { Identity, Methods, Route, UseConfig, UseIdenttiy, UseRoute } from './types/index.js'
 
