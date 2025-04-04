@@ -1,4 +1,4 @@
-import type { Conf, Options, Rule, Method } from './types/index.js'
+import type { Conf, Options, Rule, Method, RuleConf, RuleSerialize } from './types/index.js'
 import { isArray, isBoolean, isObject, isString } from '../../utils/index.js'
 import { pathToRegexp } from 'path-to-regexp'
 import path from 'path/posix'
@@ -10,7 +10,7 @@ const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TR
  * @param confs 规则配置
  * @param options 配置选项
  */
-export function create(confs: Conf[], options: Options = {}): Rule[] {
+export function create<T = any>(confs: Conf<T>[], options: Options = {}): Rule<T>[] {
 	if (!isArray(confs)) {
 		throw new TypeError('confs must be an array')
 	}
@@ -65,7 +65,7 @@ export function create(confs: Conf[], options: Options = {}): Rule[] {
 
 		const p = path.join(base, conf.path)
 
-		return {
+		const result: Rule<T> = {
 			methods: (function () {
 				if (conf.methods === '*') {
 					return [...methods]
@@ -76,6 +76,12 @@ export function create(confs: Conf[], options: Options = {}): Rule[] {
 			path: p,
 			regex: pathToRegexp(p.replaceAll('*', '{:_}'), { sensitive, trailing, end: true, delimiter: '/' }).regexp
 		}
+
+		if (Object.hasOwn(conf, 'meta')) {
+			result.meta = conf.meta
+		}
+
+		return result
 	})
 }
 
@@ -85,7 +91,7 @@ export function create(confs: Conf[], options: Options = {}): Rule[] {
  * @param method 方法
  * @param path 路径
  */
-export function check(rules: Rule[], method: Method, path: string) {
+export function check<T = any>(rules: Rule<T>[], method: Method, path: string) {
 	return rules.some((rule) => {
 		return rule.methods.includes(method) && rule.regex.test(path)
 	})
@@ -95,11 +101,51 @@ export function check(rules: Rule[], method: Method, path: string) {
  * 获取规则中的配置
  * @param rules 规则列表
  */
-export function getConf(rules: Rule[]) {
+export function getConf<T = any>(rules: Rule<T>[]): RuleConf<T>[] {
 	return rules.map((rule) => {
-		return {
+		const result: RuleConf<T> = {
 			methods: [...rule.methods],
 			path: rule.path
 		}
+		if (Object.hasOwn(rule, 'meta')) {
+			result.meta = rule.meta
+		}
+		return result
+	})
+}
+
+/**
+ * 规则序列化
+ * @param rules 规则列表
+ */
+export function RulesToSerialize<T = any>(rules: Rule<T>[]): RuleSerialize<T>[] {
+	return rules.map((rule) => {
+		const result: RuleSerialize<T> = {
+			methods: [...rule.methods],
+			path: rule.path,
+			regex: rule.regex.toString()
+		}
+		if (Object.hasOwn(rule, 'meta')) {
+			result.meta = rule.meta
+		}
+		return result
+	})
+}
+
+/**
+ * 序列化转回规则
+ * @param rules 序列化规则列表
+ */
+export function serializeToRules<T = any>(ruleSerializes: RuleSerialize<T>[]): Rule<T>[] {
+	return ruleSerializes.map((rule) => {
+		const result: Rule<T> = {
+			methods: [...rule.methods],
+			path: rule.path,
+			regex: new RegExp(rule.regex)
+		}
+		if (Object.hasOwn(rule, 'meta')) {
+			result.meta = rule.meta
+		}
+		return result
 	})
 }
