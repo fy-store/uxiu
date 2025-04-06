@@ -42,8 +42,11 @@ export interface RuleSerialize<T> {
 	methods: Method[]
 	/** 路径 */
 	path: string
-	/** 字符串化的正则表达式 */
-	regex: string
+	/** 正则表达式序列化信息 */
+	regex: {
+		source: string
+		flags: string
+	}
 	/** 元数据 */
 	meta?: T
 }

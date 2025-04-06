@@ -123,7 +123,10 @@ export function rulesToSerialize<T = any>(rules: Rule<T>[]): RuleSerialize<T>[] 
 		const result: RuleSerialize<T> = {
 			methods: [...rule.methods],
 			path: rule.path,
-			regex: rule.regex.toString()
+			regex: {
+				source: rule.regex.source,
+				flags: rule.regex.flags
+			}
 		}
 		if (Object.hasOwn(rule, 'meta')) {
 			result.meta = rule.meta
@@ -141,7 +144,7 @@ export function serializeToRules<T = any>(ruleSerializes: RuleSerialize<T>[]): R
 		const result: Rule<T> = {
 			methods: [...rule.methods],
 			path: rule.path,
-			regex: new RegExp(rule.regex)
+			regex: new RegExp(rule.regex.source, rule.regex.flags)
 		}
 		if (Object.hasOwn(rule, 'meta')) {
 			result.meta = rule.meta
