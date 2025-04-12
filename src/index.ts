@@ -1,10 +1,10 @@
-import net from 'net'
 import http from 'http'
 import Koa from 'koa'
 import type { MountedCtx, Config } from '@/types/app.js'
 import { readonly } from '@/utils/index.js'
 export * from './utils/index.js'
 export * from './common/index.js'
+export type * from './types/index.js'
 export type * as Types from './types/index.js'
 
 /**
