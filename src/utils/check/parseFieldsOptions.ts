@@ -148,7 +148,7 @@ const parseType = ({ type, field }: FieldOptions, i: number): TypeConf => {
 		throwErr('type', 'object', i)
 	}
 
-	const { expect, success = '', fail = `"${field}" type must be a ${expect}`, transform, verify } = type
+	const { expect, success = '', fail = `'${field}' type must be a ${expect}`, transform, verify } = type
 	let useExpect: TypeExpect[] = []
 	let useCheckFn: ((...args: any) => boolean)[] = []
 	if (isArray(expect)) {
