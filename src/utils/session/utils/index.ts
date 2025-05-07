@@ -1,11 +1,11 @@
 import type { Store } from '../types/index.js'
-import { nanoid } from 'nanoid'
+import { randomUUID } from 'crypto'
 
 /**
  * 生成一个随机id
  */
 export const createId = () => {
-	return `${nanoid()}_${Date.now()}`
+	return `${randomUUID()}_${Date.now()}`
 }
 
 /**
