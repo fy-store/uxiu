@@ -13,7 +13,7 @@ const config: RollupOptions[] = [
 			format: 'es'
 		},
 
-		external: ['nanoid', 'koa'],
+		external: ['koa', 'path-to-regexp'],
 
 		// ignore error see https://github.com/rollup/plugins/issues/1662
 		plugins: [

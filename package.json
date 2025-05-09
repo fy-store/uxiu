@@ -55,7 +55,6 @@
 	},
 	"peerDependencies": {
 		"koa": "^2.15.3",
-		"nanoid": "^5.0.9",
 		"path-to-regexp": "^8.2.0"
 	},
 	"pnpm": {
