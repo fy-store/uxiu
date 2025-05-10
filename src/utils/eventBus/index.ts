@@ -94,7 +94,7 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 			throw new TypeError('options must be a object')
 		}
 
-		if (!(isObj(options.sign) || isUndefined(options.sign))) {
+		if (!(isSymbol(options.sign) || isUndefined(options.sign))) {
 			throw new TypeError('options.sign must be a symbol')
 		}
 
