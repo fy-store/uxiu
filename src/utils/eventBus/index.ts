@@ -15,9 +15,16 @@ import { isFunction } from '../isFunction/index.js'
 import { isArray } from '../isArray/index.js'
 import { isUndefined } from '../isUndefined/index.js'
 
+/**
+ * 事件总线
+ */
 export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E>>> {
 	#state: S
 	#eventMap = Object.create(null) as EventMap<S, EventBus<S, E>>
+	/**
+	 * 事件总线
+	 * @param options 配置选项
+	 */
 	constructor(options?: Options<S, E>) {
 		type Self = EventBus<S, E>
 		const { state = {}, eventMap = {} } = options ?? {}
@@ -72,6 +79,7 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 		})
 	}
 
+	/** 状态对象 */
 	get state() {
 		return this.#state
 	}
@@ -112,19 +120,53 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 		return symbol
 	}
 
+	/**
+	 * 注册一个事件
+	 * @param eventName 事件名称
+	 * @param callback 事件回调
+	 * @param options 配置选项
+	 */
 	on(eventName: keyof E, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
+	/**
+	 * 注册一个事件
+	 * @param eventName 事件名称
+	 * @param callback 事件回调
+	 * @param options 配置选项
+	 */
 	on(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
 	on(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol {
 		return this.#on(eventName, callback, false, options)
 	}
 
+	/**
+	 * 注册一个一次性事件
+	 * @param eventName 事件名称
+	 * @param callback 事件回调
+	 * @param options 配置选项
+	 */
 	once(eventName: keyof E, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
+	/**
+	 * 注册一个一次性事件
+	 * @param eventName 事件名称
+	 * @param callback 事件回调
+	 * @param options 配置选项
+	 */
 	once(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
 	once(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol {
 		return this.#on(eventName, callback, true, options)
 	}
 
+	/**
+	 * 触发指定事件
+	 * @param eventName 事件名称
+	 * @param args 参数列表
+	 */
 	emit(eventName: keyof E, ...args: any[]): this
+	/**
+	 * 触发指定事件
+	 * @param eventName 事件名称
+	 * @param args 参数列表
+	 */
 	emit(eventName: string | symbol, ...args: any[]): this
 	emit(eventName: string | symbol, ...args: any[]): this {
 		const callbackInfoArr = this.#eventMap[eventName]
@@ -158,6 +200,11 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 		return this
 	}
 
+	/**
+	 * 移除指定事件中的回调
+	 * @param eventName 事件名称
+	 * @param ref 回调函数引用或回调标识
+	 */
 	off(eventName: keyof E, ref: symbol | Function): this {
 		const callbackInfoArr = this.#eventMap[eventName]
 		if (!callbackInfoArr) {
@@ -187,6 +234,10 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 		return this
 	}
 
+	/**
+	 * 通过回调标识移除事件回调
+	 * @param sign 回调标识
+	 */
 	offBySign(sign: symbol): this {
 		if (!isSymbol(sign)) {
 			throw new TypeError('sign must be a symbol')
@@ -210,10 +261,19 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 		return this
 	}
 
+	/**
+	 * 判断一个事件是否存在
+	 * @param eventName 事件名称
+	 */
 	has(eventName: keyof E): boolean {
 		return !!this.#eventMap[eventName]
 	}
 
+	/**
+	 * 判断事件中指定的回调是否存在
+	 * @param eventName 事件名称
+	 * @param ref 回调函数引用或回调标识
+	 */
 	hasCallback(eventName: keyof E, ref: symbol | Function): boolean {
 		const callbackInfoArr = this.#eventMap[eventName]
 		if (!callbackInfoArr) {
@@ -232,6 +292,10 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 		return callbackInfoArr.some((callbackInfo) => callbackInfo[refField] === ref)
 	}
 
+	/**
+	 * 通过回调标识判断回调是否存在
+	 * @param sign 回调标识
+	 */
 	hasCallbackBySign(sign: symbol): boolean {
 		const eventMapKeys = Reflect.ownKeys(this.#eventMap)
 		for (let i = 0; i < eventMapKeys.length; i++) {
@@ -259,7 +323,7 @@ const log = (() => {
 		return {
 			warn(...data: any[]) {
 				throw new Error(
-					`'console.warn()' not existent, 'eventBus()' prevent missing reminders, therefore throw Error ! ${String(
+					`'console.warn()' not existent, 'EventBus' prevent missing reminders, therefore throw Error ! ${String(
 						data[0]
 					)}`
 				)
@@ -282,3 +346,5 @@ const print = {
 		log.error(...data)
 	}
 }
+
+const eventBus = new EventBus()
