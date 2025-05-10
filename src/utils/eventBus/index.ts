@@ -27,7 +27,7 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 	 */
 	constructor(options?: Options<S, E>) {
 		type Self = EventBus<S, E>
-		const { state = {}, eventMap = {} } = options ?? {}
+		const { state = {}, eventMap = {}, ctx } = options ?? {}
 		if (!isObj(state)) {
 			throw new TypeError('state must be an object')
 		}
@@ -77,6 +77,32 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 
 			this.#eventMap[key] = callbackInfoList
 		})
+
+		if (ctx) {
+			ctx.call(this, {
+				state: this.#state,
+				eventMap: this.#eventMap,
+				self: this,
+				setSelf: (key: string | symbol, value: any) => {
+					this[key] = value
+					return this
+				},
+				clear: (eventName: string | symbol) => {
+					if (!(isString(eventName) || isSymbol(eventName))) {
+						throw new TypeError(`eventName must be a string or symbol`)
+					}
+					delete this.#eventMap[eventName]
+					return this
+				},
+				clearAll: () => {
+					const eventMapKeys = Reflect.ownKeys(this.#eventMap)
+					eventMapKeys.forEach((key) => {
+						delete this.#eventMap[key]
+					})
+					return this
+				}
+			})
+		}
 	}
 
 	/** 状态对象 */
@@ -161,24 +187,25 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 	 * @param eventName 事件名称
 	 * @param args 参数列表
 	 */
-	emit(eventName: keyof E, ...args: any[]): this
+	emit(this: EventBus<S, E>, eventName: keyof E, ...args: any[]): this
 	/**
 	 * 触发指定事件
 	 * @param eventName 事件名称
 	 * @param args 参数列表
 	 */
-	emit(eventName: string | symbol, ...args: any[]): this
-	emit(eventName: string | symbol, ...args: any[]): this {
+	emit(this: EventBus<S, E>, eventName: string | symbol, ...args: any[]): this
+	emit(this: EventBus<S, E>, eventName: string | symbol, ...args: any[]) {
 		const callbackInfoArr = this.#eventMap[eventName]
 		if (!callbackInfoArr) {
-			logWarn(`eventName -> '${String(eventName)}' is not exist`)
+			logWarn(`EventBus(warn): eventName -> '${String(eventName)}' is not exist`)
 			return this
 		}
 
 		for (let i = 0; i < callbackInfoArr.length; i++) {
 			const { fn, once } = callbackInfoArr[i]
 			try {
-				fn(
+				fn.call(
+					this,
 					{
 						self: this,
 						state: this.state
@@ -208,7 +235,7 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 	off(eventName: keyof E, ref: symbol | Function): this {
 		const callbackInfoArr = this.#eventMap[eventName]
 		if (!callbackInfoArr) {
-			logWarn(`eventName -> '${String(eventName)}' is not exist`)
+			logWarn(`EventBus(warn): eventName -> '${String(eventName)}' is not exist`)
 			return this
 		}
 
@@ -308,12 +335,14 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 	}
 }
 
-function logWarn(...args: any[]) {
-	print.warn(...args)
+function logWarn(...data: any[]) {
+	data[0] = `\x1b[33m${String(data[0])} \x1B[0m`
+	log.warn(...data)
 }
 
-function logError(...args: any[]) {
-	print.error(...args)
+function logError(...data: any[]) {
+	data[0] = `\x1b[31m${String(data[0])} \x1B[0m`
+	log.error(...data)
 }
 
 const log = (() => {
@@ -321,30 +350,8 @@ const log = (() => {
 		return console
 	} else {
 		return {
-			warn(...data: any[]) {
-				throw new Error(
-					`'console.warn()' not existent, 'EventBus' prevent missing reminders, therefore throw Error ! ${String(
-						data[0]
-					)}`
-				)
-			},
-			error(...data: any[]) {
-				throw new Error(data[0])
-			}
+			warn(..._data: any[]) {},
+			error(..._data: any[]) {}
 		}
 	}
 })()
-
-const print = {
-	warn(...data: any[]) {
-		data[0] = `\x1b[33m${String(data[0])} \x1B[0m`
-		log.warn(...data)
-	},
-
-	error(...data: any[]) {
-		data[0] = `\x1b[31m${String(data[0])} \x1B[0m`
-		log.error(...data)
-	}
-}
-
-const eventBus = new EventBus()

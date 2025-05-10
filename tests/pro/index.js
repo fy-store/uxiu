@@ -1,4 +1,4 @@
-import { extract, readonly } from '../../src/index.js'
+import { extract, readonly, EventBus } from '../../src/index.js'
 
 const target = {
 	a: 1,
@@ -21,3 +21,15 @@ const target = {
 const result = readonly(extract(target, ['g', 'a']))
 
 console.log('result', result)
+
+class MyEventBus extends EventBus {}
+
+const myEventBus = new MyEventBus({
+	eventMap: {
+		test: (ctx) => {
+			console.log('test', ctx)
+		}
+	}
+})
+
+myEventBus.on('test')
