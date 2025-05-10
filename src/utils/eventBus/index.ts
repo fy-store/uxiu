@@ -1,68 +1,74 @@
-import type { State, Events, Options, Callback, CallbackOptions, OnOptions, EventStore } from './types/index.js'
+import type {
+	State,
+	EventMapOption,
+	Options,
+	Callback,
+	CallbackOptions,
+	OnOptions,
+	CallbackInfo,
+	EventMap
+} from './types/index.js'
 import { isObj } from '../isObj/index.js'
 import { isString } from '../isString/index.js'
 import { isSymbol } from '../isSymbol/index.js'
 import { isFunction } from '../isFunction/index.js'
 import { isArray } from '../isArray/index.js'
-import { isBoolean } from '../isBoolean/index.js'
 import { isUndefined } from '../isUndefined/index.js'
 
-export class EventBus<S extends State, E extends Events<S, EventBus<S, E>>> {
+export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E>>> {
 	#state: S
-	#events = new Map<symbol, EventStore<S, EventBus<S, E>>[]>()
-	#keyMap = Object.create(null) as Record<string, symbol>
+	#eventMap = Object.create(null) as EventMap<S, EventBus<S, E>>
 	constructor(options?: Options<S, E>) {
-		const { state = {}, events = {} } = options ?? {}
+		type Self = EventBus<S, E>
+		const { state = {}, eventMap = {} } = options ?? {}
 		if (!isObj(state)) {
 			throw new TypeError('state must be an object')
 		}
-		if (!isObj(events)) {
+		if (!isObj(eventMap)) {
 			throw new TypeError('events must be an object')
 		}
-		this.#state = state as S
 
-		Object.entries(events).forEach(([eventName, callback]) => {
-			let callbackOptions: EventStore<S, EventBus<S, E>>[]
-			const symbol = Symbol(eventName)
-			if (isFunction(callback)) {
-				callbackOptions = [
+		this.#state = state as S
+		const eventMapKeys = Reflect.ownKeys(eventMap)
+		eventMapKeys.forEach((key) => {
+			const eventOption: EventMapOption<S, Self> = eventMap[key]
+			let callbackInfoList: CallbackInfo<S, Self>[]
+			if (isFunction<Callback<S, Self>>(eventOption)) {
+				callbackInfoList = [
 					{
 						once: false,
-						fn: callback,
-						name: eventName,
-						sign: symbol
+						fn: eventOption,
+						sign: Symbol()
 					}
 				]
-			} else if (isArray(callback)) {
-				callbackOptions = callback.map((callback, i) => {
-					if (isFunction<Callback<S, EventBus<S, E>>>(callback)) {
+			} else if (isArray(eventOption)) {
+				callbackInfoList = eventOption.map((it, i) => {
+					if (isFunction<Callback<S, Self>>(it)) {
 						return {
 							once: false,
-							fn: callback,
-							name: eventName,
-							sign: symbol
+							fn: it,
+							sign: Symbol()
 						}
-					} else if (isObj<CallbackOptions<S, EventBus<S, E>>>(callback)) {
-						if (!(isSymbol(callback.sign) || isUndefined(callback.sign))) {
-							throw new TypeError(`callback.sign must be a symbol or undefined in options.events[${i}]`)
+					} else if (isObj<CallbackOptions<S, Self>>(it)) {
+						if (!(isSymbol(it.sign) || isUndefined(it.sign))) {
+							throw new TypeError(
+								`options.eventMap${String(key)}[${i}].sign must be a symbol or undefined`
+							)
 						}
-						if (!isFunction(callback.fn)) {
-							throw new TypeError(`callback.fn must be a function in options.events[${i}]`)
+						if (!isFunction(it.fn)) {
+							throw new TypeError(`options.eventMap${String(key)}[${i}].fn must be a function`)
 						}
 						return {
-							once: !!callback.once,
-							fn: callback.fn,
-							name: eventName,
-							sign: callback.sign ?? symbol
+							once: !!it.once,
+							fn: it.fn,
+							sign: it.sign ?? Symbol()
 						}
 					}
-
-					throw new TypeError('callback must be a function or an object[]')
+					throw new TypeError(`options.eventMap${String(key)} must be a function or object[]`)
 				})
 			}
 
-			this.#events.set(symbol, callbackOptions)
-			this.#keyMap[eventName] = symbol
+			this.#eventMap[key] = callbackInfoList
 		})
 	}
 
@@ -70,253 +76,209 @@ export class EventBus<S extends State, E extends Events<S, EventBus<S, E>>> {
 		return this.#state
 	}
 
-	#on(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, once: boolean, options?: OnOptions) {
+	#on(
+		eventName: string | symbol,
+		callback: Callback<S, EventBus<S, E>>,
+		once: boolean,
+		options: OnOptions = {}
+	): symbol {
+		if (!(isString(eventName) || isSymbol(eventName))) {
+			throw new TypeError('eventName must be a string or symbol')
+		}
+
 		if (!isFunction(callback)) {
 			throw new TypeError('callback must be a function')
 		}
 
-		let symbol: symbol
-		if (isSymbol(eventName)) {
-			symbol = eventName
-			if (!this.#events.has(eventName)) {
-				this.#events.set(eventName, [])
-			}
-			this.#events.get(eventName).push({
-				once,
-				name: void 0,
-				fn: callback,
-				sign: symbol
-			})
-		} else if (isString(eventName)) {
-			symbol = Symbol(options?.msg ?? eventName)
-			if (!this.#keyMap[eventName]) {
-				this.#keyMap[eventName] = symbol
-			}
-			this.#events.get(symbol).push({
-				once,
-				name: eventName,
-				fn: callback,
-				sign: symbol
-			})
-		} else {
-			throw new TypeError('eventName must be a string or a symbol')
+		if (!isObj(options)) {
+			throw new TypeError('options must be a object')
 		}
+
+		if (!(isObj(options.sign) || isUndefined(options.sign))) {
+			throw new TypeError('options.sign must be a symbol')
+		}
+
+		const symbol: symbol = options.sign ?? Symbol()
+		if (!this.#eventMap[eventName]) {
+			this.#eventMap[eventName] = []
+		}
+
+		this.#eventMap[eventName].push({
+			once,
+			fn: callback,
+			sign: symbol
+		})
+
 		return symbol
 	}
 
 	on(eventName: keyof E, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
 	on(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
-	on(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions) {
+	on(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol {
 		return this.#on(eventName, callback, false, options)
 	}
 
 	once(eventName: keyof E, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
 	once(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
-	once(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions) {
+	once(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol {
 		return this.#on(eventName, callback, true, options)
 	}
 
 	emit(eventName: keyof E, ...args: any[]): this
 	emit(eventName: string | symbol, ...args: any[]): this
-	emit(eventName: string | symbol, ...args: any[]) {
-		if (isSymbol(eventName)) {
-			const eventArr = this.#events.get(eventName)
-			if (!eventArr) {
-				logWarn(`eventName -> '${String(eventName)}' is not exist`)
-				return this
+	emit(eventName: string | symbol, ...args: any[]): this {
+		const callbackInfoArr = this.#eventMap[eventName]
+		if (!callbackInfoArr) {
+			logWarn(`eventName -> '${String(eventName)}' is not exist`)
+			return this
+		}
+
+		for (let i = 0; i < callbackInfoArr.length; i++) {
+			const { fn, once } = callbackInfoArr[i]
+			try {
+				fn(
+					{
+						self: this,
+						state: this.state
+					},
+					...args
+				)
+			} catch (error) {
+				logError(error)
 			}
-			for (let i = 0; i < eventArr.length; i++) {
-				const { fn, once } = eventArr[i]
-				try {
-					fn(
-						{
-							self: this,
-							state: this.state
-						},
-						...args
-					)
-				} catch (error) {
-					logError(error)
-				}
-				if (once) {
-					eventArr.splice(i, 1)
-					i--
-				}
+			if (once) {
+				callbackInfoArr.splice(i, 1)
+				i--
 			}
-		} else if (isString(eventName)) {
-			const symbol = this.#keyMap[eventName]
-			if (!symbol) {
-				logWarn(`eventName -> '${String(eventName)}' is not exist`)
-				return this
-			}
-			const eventArr = this.#events.get(symbol)
-			for (let i = 0; i < eventArr.length; i++) {
-				const { fn, once } = eventArr[i]
-				try {
-					fn(
-						{
-							self: this,
-							state: this.state
-						},
-						...args
-					)
-				} catch (error) {
-					logError(error)
-				}
-				if (once) {
-					eventArr.splice(i, 1)
-					i--
-				}
-			}
-		} else {
-			throw new TypeError('eventName must be a string or a symbol')
+		}
+
+		if (!callbackInfoArr.length) {
+			delete this.#eventMap[eventName]
 		}
 		return this
 	}
 
-	off(eventName: keyof E): this
-	off(eventName: string | symbol): this
-	off(eventName: string | symbol) {
-		if (isSymbol(eventName)) {
-			const eventArr = this.#events.get(eventName)
-			if (!eventArr) {
-				logWarn(`eventName -> '${String(eventName)}' is not exist`)
-				return this
-			}
-			for (let i = 0; i < eventArr.length; i++) {
-				const { fn, once } = eventArr[i]
-				try {
-					fn({
-						self: this,
-						state: this.state
-					})
-				} catch (error) {
-					logError(error)
-				}
-				if (once) {
-					eventArr.splice(i, 1)
-					i--
-				}
-			}
-		} else if (isString(eventName)) {
-			const symbol = this.#keyMap[eventName]
-			if (!symbol) {
-				logWarn(`eventName -> '${String(eventName)}' is not exist`)
-				return this
-			}
-			const eventArr = this.#events.get(symbol)
-			for (let i = 0; i < eventArr.length; i++) {
-				const { fn, once } = eventArr[i]
-				try {
-					fn({
-						self: this,
-						state: this.state
-					})
-				} catch (error) {
-					logError(error)
-				}
-				if (once) {
-					eventArr.splice(i, 1)
-					i--
-				}
-			}
+	off(eventName: keyof E, ref: symbol | Function): this {
+		const callbackInfoArr = this.#eventMap[eventName]
+		if (!callbackInfoArr) {
+			logWarn(`eventName -> '${String(eventName)}' is not exist`)
+			return this
+		}
+
+		let refField: 'sign' | 'fn'
+		if (isSymbol(ref)) {
+			refField = 'sign'
+		} else if (isFunction(ref)) {
+			refField = 'fn'
 		} else {
-			throw new TypeError('eventName must be a string or a symbol')
+			throw new TypeError('ref must be a symbol or function')
+		}
+
+		for (let i = 0; i < callbackInfoArr.length; i++) {
+			if (callbackInfoArr[i][refField] === ref) {
+				callbackInfoArr.splice(i, 1)
+				i--
+			}
+		}
+
+		if (!callbackInfoArr.length) {
+			delete this.#eventMap[eventName]
 		}
 		return this
+	}
+
+	offBySign(sign: symbol): this {
+		if (!isSymbol(sign)) {
+			throw new TypeError('sign must be a symbol')
+		}
+
+		const eventMapKeys = Reflect.ownKeys(this.#eventMap)
+		eventMapKeys.forEach((key) => {
+			const callbackInfoArr = this.#eventMap[key] ?? []
+			for (let i = 0; i < callbackInfoArr.length; i++) {
+				if (callbackInfoArr[i].sign === sign) {
+					callbackInfoArr.splice(i, 1)
+					i--
+				}
+			}
+
+			if (!callbackInfoArr.length) {
+				delete this.#eventMap[key]
+			}
+		})
+
+		return this
+	}
+
+	has(eventName: keyof E): boolean {
+		return !!this.#eventMap[eventName]
+	}
+
+	hasCallback(eventName: keyof E, ref: symbol | Function): boolean {
+		const callbackInfoArr = this.#eventMap[eventName]
+		if (!callbackInfoArr) {
+			return false
+		}
+
+		let refField: 'sign' | 'fn'
+		if (isSymbol(ref)) {
+			refField = 'sign'
+		} else if (isFunction(ref)) {
+			refField = 'fn'
+		} else {
+			throw new TypeError('ref must be a symbol or function')
+		}
+
+		return callbackInfoArr.some((callbackInfo) => callbackInfo[refField] === ref)
+	}
+
+	hasCallbackBySign(sign: symbol): boolean {
+		const eventMapKeys = Reflect.ownKeys(this.#eventMap)
+		for (let i = 0; i < eventMapKeys.length; i++) {
+			const callbackInfoArr = this.#eventMap[eventMapKeys[i]]
+			if (callbackInfoArr.some((callbackInfo) => callbackInfo.sign === sign)) {
+				return true
+			}
+		}
+		return false
 	}
 }
 
 function logWarn(...args: any[]) {
-	console.warn(...args)
+	print.warn(...args)
 }
 
 function logError(...args: any[]) {
-	console.error(...args)
+	print.error(...args)
 }
 
-const event = new EventBus({
-	state: {
-		a: 1,
-		b: 'b'
-	},
-	events: {
-		changeA(a) {
-			console.log('changeA', a)
-		},
-		changeB: [
-			(ctx) => {
-				console.log('changeB', ctx)
+const log = (() => {
+	if (typeof console !== 'undefined') {
+		return console
+	} else {
+		return {
+			warn(...data: any[]) {
+				throw new Error(
+					`'console.warn()' not existent, 'eventBus()' prevent missing reminders, therefore throw Error ! ${String(
+						data[0]
+					)}`
+				)
+			},
+			error(...data: any[]) {
+				throw new Error(data[0])
 			}
-		],
-		changeC: [
-			{
-				fn: (ctx) => {
-					console.log('changeC', ctx)
-				},
-				once: true
-			}
-		]
+		}
 	}
-})
+})()
 
-event.emit('changeA', 1, 2, 3)
+const print = {
+	warn(...data: any[]) {
+		data[0] = `\x1b[33m${String(data[0])} \x1B[0m`
+		log.warn(...data)
+	},
 
-event.state.b
-const sign = event.on('changeA', (ctx, a: string, b: number) => {
-	// ctx.self.on('')
-})
-
-event.on('changeA1', (ctx) => {})
-
-// type EventMap = Record<string, (...args: any[]) => void>
-
-// interface EventBusOptions<S extends Record<string, any>, E extends EventMap> {
-// 	state: S
-// 	event: E
-// }
-
-// class EventBus<S extends Record<string, any>, E extends EventMap> {
-// 	public state: S
-// 	private listeners: { [K in keyof E]?: E[K][] } = {}
-
-// 	constructor(options: EventBusOptions<S, E>) {
-// 		this.state = options.state
-
-// 		// 初始化时注册的事件（可选）
-// 		for (const key in options.event) {
-// 			this.listeners[key] = [options.event[key]]
-// 		}
-// 	}
-
-// 	on<K extends keyof E>(eventName: K, callback: E[K]) {
-// 		this.listeners[eventName] ||= []
-// 		this.listeners[eventName]!.push(callback)
-// 	}
-
-// 	off<K extends keyof E>(eventName: K, callback: E[K]) {
-// 		this.listeners[eventName] = (this.listeners[eventName] || []).filter((fn) => fn !== callback)
-// 	}
-
-// 	emit<K extends keyof E>(eventName: K, ...args: Parameters<E[K]>) {
-// 		this.listeners[eventName]?.forEach((fn) => fn(...args))
-// 	}
-// }
-
-// const event = new EventBus({
-// 	state: {
-// 		a: 1,
-// 		b: 'b'
-// 	},
-// 	event: {
-// 		changeA(a) {
-// 			console.log('changeA', a)
-// 		},
-// 		changeB(b) {
-// 			console.log('changeB', b)
-// 		}
-// 	}
-// })
-
-// event.state.a
-// event.on('changeA')
+	error(...data: any[]) {
+		data[0] = `\x1b[31m${String(data[0])} \x1B[0m`
+		log.error(...data)
+	}
+}

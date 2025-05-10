@@ -1,6 +1,6 @@
 import type { Options } from './types/index.js'
-import type { DeepReadonly } from '@/utils/readonly/types/index.js'
-import { isArray, isObject, readonly } from '@/utils/index.js'
+import type { DeepReadonly } from '../readonly/types/index.js'
+import { isArray, isObject, readonly } from '../index.js'
 import { clone, createId, createStore } from './utils/index.js'
 export { createId, clone }
 
