@@ -7,11 +7,18 @@ import { dts } from 'rollup-plugin-dts'
 
 const config: RollupOptions[] = [
 	{
+		
 		input: './src/index.ts',
-		output: {
-			file: './dist/index.js',
-			format: 'es'
-		},
+		output: [
+			{
+				file: './dist/index.js',
+				format: 'es'
+			},
+			{
+				file: './dist/index.cjs.js',
+				format: 'cjs'
+			}
+		],
 
 		external: ['koa', 'path-to-regexp'],
 
@@ -39,10 +46,16 @@ const config: RollupOptions[] = [
 	// 打包 d.ts
 	{
 		input: './src/index.ts',
-		output: {
-			file: './dist/index.d.ts',
-			format: 'es'
-		},
+		output: [
+			{
+				file: './dist/index.d.ts',
+				format: 'es'
+			},
+			{
+				file: './dist/index.cjs.d.ts',
+				format: 'cjs'
+			}
+		],
 
 		plugins: [
 			// @ts-expect-error error

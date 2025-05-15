@@ -65,7 +65,7 @@ export interface CallbackOptions<S, Self> {
 }
 
 /** 事件配置对象, key 为事件名, 支持 symbol */
-export interface EventMapOption<S, Self> {
+export interface EventMapOption<S extends State, Self> {
 	[k: string | symbol]: Callback<S, Self> | Callback<S, Self>[] | CallbackOptions<S, Self>[]
 }
 
@@ -91,7 +91,7 @@ type _DinfindEventMap<S extends State, Self, Keys extends string | symbol> = Par
 >
 
 /** 自定义 eventMap */
-export type DefindEventMap<State, Keys extends string | symbol> = _DinfindEventMap<State, EventBus<State, any>, Keys>
+export type DefindEventMap<S extends State, Keys extends string | symbol> = _DinfindEventMap<S, EventBus<S, any>, Keys>
 
 // 工具类型
-export type Self<S, E extends EventMapOption<S, EventBus<S, E>>> = EventBus<S, E>
+export type Self<S extends State, E extends EventMapOption<S, EventBus<S, E>>> = EventBus<S, E>
