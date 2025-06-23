@@ -1,27 +1,34 @@
-import { EventBus, type EventBusType } from '@/index.js'
-import { DefindEventMap, EventMapOption } from '@/utils/eventBus/types/index.js'
+import { createDbFit } from '@/index.js'
 
-// 定义具体的状态类型
-type MyState = {
-	count: number
-	user: string
-}
-
-// 定义具体的事件映射配置
-const sign = Symbol('myEventSign')
-const another = Symbol('another')
-
-interface MyEventMap extends EventMapOption<MyState, EventBus<MyState, MyEventMap>> {}
-
-// 继承后定义具体类
-class MyBus extends EventBus<MyState, DefindEventMap<MyState, 'a' | 'b'>> {
-	customMethod() {
-		this.emit('sayHi', '汪星人 🤤') // 自动提示参数 🐶😍
-	}
-}
-
-const myBus = new MyBus({
-	eventMap: {
-		a() {}
+const DbFit = createDbFit({
+	async query(sql: string, params: any[]) {
+		// console.log(sql, params)
+		return [[], { sql, params }]
 	}
 })
+
+class Admin extends DbFit {
+	constructor() {
+		super()
+	}
+
+	get(id: number) {
+		return this.$query('SELECT * FROM admin WHERE id = ?', [id])
+	}
+
+	create(name: string, password: string) {
+		return this.$query('INSERT INTO admin (name, password) VALUES (?, ?)', [name, password])
+	}
+}
+
+const admin = new Admin()
+const result = await admin
+	.get(1)
+	.$use((self) => {
+		if (self.$result) {
+			self.$end()
+		}
+		return self
+	})
+	.create('root', '123456')
+	.$exec()
