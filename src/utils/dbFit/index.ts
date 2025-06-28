@@ -68,7 +68,6 @@ export class DbFit<T extends Options = Options> extends Event<EventType> {
 			throw new Error('example only execute once')
 		}
 		this.#tasks.push(args)
-		this.has('query') && this.emit('query', this, ...args)
 		return this
 	}
 
@@ -91,7 +90,7 @@ export class DbFit<T extends Options = Options> extends Event<EventType> {
 	 * 使用插件
 	 * @param plugin 插件, 可以是一个函数或 DbFit 的实例
 	 */
-	$use(plugin: ((this: this, self: this) => any) | DbFit) {
+	$use(plugin: ((this: this, self: this) => void) | DbFit) {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
 		}
@@ -118,6 +117,9 @@ export class DbFit<T extends Options = Options> extends Event<EventType> {
 		}
 		try {
 			this.#execIndex = 0
+			if (this.has('hook:beforeExec')) {
+				await this.emitLineUp('hook:beforeExec', this)
+			}
 			for (const task of this.#tasks) {
 				if (this.$isEnd) {
 					break
@@ -126,30 +128,46 @@ export class DbFit<T extends Options = Options> extends Event<EventType> {
 				if (typeof task === 'function') {
 					await task.call(this, this)
 				} else {
+					if (this.has('hook:beforeQuery')) {
+						await this.emitLineUp('hook:beforeQuery', this)
+					}
 					const result = await this.#query(...task)
 					this.$result = result
+					if (this.has('hook:afterQuery')) {
+						this.emit('hook:afterQuery', this)
+					}
 				}
 				this.#execIndex++
 			}
+			if (this.has('hook:afterExec')) {
+				await this.emitLineUp('hook:afterExec', this)
+			}
 		} catch (error) {
-			throw error
+			if (this.has('hook:execError')) {
+				await this.emitLineUp('hook:execError', this, error)
+			} else {
+				throw error
+			}
 		} finally {
 			this.#isExec = true
 			this.#isEnd = true
-			this.has('exec') && this.emit('exec', this)
-			this.has('end') && this.emit('end', this)
+			if (this.has('hook:end')) {
+				await this.emitLineUp('hook:end', this)
+			}
 		}
 
 		return this.$result
 	}
 
 	/** 结束任务 */
-	$end() {
+	async $end() {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
 		}
 		this.#isEnd = true
-		this.has('end') && this.emit('end', this)
+		if (this.has('hook:callEnd')) {
+			await this.emitLineUp('hook:callEnd', this)
+		}
 		return this
 	}
 }
