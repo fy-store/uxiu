@@ -1,25 +1,23 @@
-import type { Options } from './types/index.js'
+import type { EventType, Options } from './types/index.js'
 import { isObject } from '../isObject/index.js'
+import { readonly } from '../readonly/index.js'
+import Event from '@yishu/event'
 
 /**
  * 数据库模型适配器
  */
-export class DbFit<T extends Options = Options> {
+export class DbFit<T extends Options = Options> extends Event<EventType> {
 	#isExec = false
 	#tasks = []
-	#result: Awaited<ReturnType<T['query']>>
 	#execIndex: number = null
 	#query: T['query']
 	#isEnd = false
+	/** 查询结果, 每个任务都将覆盖此结果 */
+	$result: Awaited<ReturnType<T['query']>>
 
 	/** 任务队列 */
 	get $tasks() {
-		return this.#tasks
-	}
-
-	/** 查询结果, 每个任务都将覆盖此结果 */
-	get $result() {
-		return this.#result
+		return readonly(this.#tasks)
 	}
 
 	/** 当前实例是否已经执行 */
@@ -50,6 +48,7 @@ export class DbFit<T extends Options = Options> {
 	 * @param options 配置选项
 	 */
 	constructor(options: T) {
+		super({ events: options.events })
 		if (!isObject(options)) {
 			throw new TypeError('options must be an object')
 		}
@@ -69,6 +68,7 @@ export class DbFit<T extends Options = Options> {
 			throw new Error('example only execute once')
 		}
 		this.#tasks.push(args)
+		this.has('query') && this.emit('query', this, ...args)
 		return this
 	}
 
@@ -96,7 +96,7 @@ export class DbFit<T extends Options = Options> {
 			throw new Error('example only execute once')
 		}
 		if (plugin instanceof DbFit) {
-			this.$tasks.push(() => {
+			this.#tasks.push(() => {
 				plugin.$setQuery(this.#query)
 				return plugin.$exec()
 			})
@@ -122,23 +122,25 @@ export class DbFit<T extends Options = Options> {
 				if (this.$isEnd) {
 					break
 				}
-				this.#execIndex++
+
 				if (typeof task === 'function') {
-					const result = await this.#query(task.call(this, this))
-					this.#result = result
+					await task.call(this, this)
 				} else {
 					const result = await this.#query(...task)
-					this.#result = result
+					this.$result = result
 				}
+				this.#execIndex++
 			}
 		} catch (error) {
 			throw error
 		} finally {
 			this.#isExec = true
 			this.#isEnd = true
+			this.has('exec') && this.emit('exec', this)
+			this.has('end') && this.emit('end', this)
 		}
 
-		return this.#result
+		return this.$result
 	}
 
 	/** 结束任务 */
@@ -147,6 +149,7 @@ export class DbFit<T extends Options = Options> {
 			throw new Error('example only execute once')
 		}
 		this.#isEnd = true
+		this.has('end') && this.emit('end', this)
 		return this
 	}
 }
@@ -154,6 +157,7 @@ export class DbFit<T extends Options = Options> {
 /**
  * 创建 DbFit 实例工厂函数
  * @param optionsTemplate 配置选项
+ * @deprecated 生成的 .d.ts 类型不正确, 推荐自定义工厂函数保证开发环境类型正确
  */
 export function createDbFit<T extends Options = Options>(optionsTemplate: T) {
 	return class DbFitModel extends DbFit<T> {

@@ -68,5 +68,8 @@
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
+	},
+	"dependencies": {
+		"@yishu/event": "^1.0.1"
 	}
 }
