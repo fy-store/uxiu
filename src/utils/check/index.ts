@@ -1,4 +1,4 @@
-import type { FieldsOptions, Options, Result } from './types/index.js'
+import type { CheckFieldsOptions, CheckOptions, CheckResult } from './types/index.js'
 import { isArray } from '../isArray/index.js'
 import { isObject } from '../isObject/index.js'
 import { readonly } from '../readonly/index.js'
@@ -6,6 +6,7 @@ import parseFieldsOptions from './parseFieldsOptions.js'
 import verify, { confFiledList } from './verify.js'
 import { isUndefined } from '../isUndefined/index.js'
 import { isFunction } from '../isFunction/index.js'
+export * from './types/index.js'
 
 /**
  * 创建一个检查器
@@ -13,7 +14,7 @@ import { isFunction } from '../isFunction/index.js'
  * @param options 其他配置
  * @returns 检查器
  */
-export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOptions<T>, options: Options = {}) => {
+export const createCheck = <T = Record<string, string>>(fieldsOptions: CheckFieldsOptions<T>, options: CheckOptions = {}) => {
 	if (!isArray(fieldsOptions)) {
 		throw new TypeError("'options.fieldsOptions' must be an array")
 	}
@@ -38,7 +39,7 @@ export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOpt
 	 * @param data 需要检查的数据
 	 * @returns 检查结果
 	 */
-	return (data: object): Result => {
+	return (data: object): CheckResult => {
 		if (options.beforeCheck) {
 			data = options.beforeCheck(data)
 		}
@@ -55,9 +56,9 @@ export const createCheck = <T = Record<string, string>>(fieldsOptions: FieldsOpt
 		let _failMsgMap = null
 		let _fieldConfs = null
 
-		const resultInfo: Result = {
+		const resultInfo: CheckResult = {
 			result,
-			getData<T = any>(handle: (info: Result) => any): T {
+			getData<T = any>(handle: (info: CheckResult) => any): T {
 				let newResult: any = data
 				if (options.beforeGetData) {
 					newResult = options.beforeGetData(resultInfo)

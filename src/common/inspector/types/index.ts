@@ -1,15 +1,15 @@
-export type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'TRACE' | 'CONNECT'
+export type InspectorMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS' | 'TRACE' | 'CONNECT'
 
-export interface Conf<T> {
+export interface InspectorConf<T> {
 	/** 方法 */
-	methods: Method | Method[] | '*'
+	methods: InspectorMethod | InspectorMethod[] | '*'
 	/** 路径配置, 仅允许出现 a-zA-Z0-9_-* 其中 `*` 表示任意字符 */
 	path: string
 	/** 元数据 */
 	meta?: T
 }
 
-export interface Options {
+export interface InspectorOptions {
 	/** 基础路径, 默认 `/` */
 	base?: string
 	/** 大小写敏感, 默认 `true` */
@@ -18,9 +18,9 @@ export interface Options {
 	trailing?: boolean
 }
 
-export interface Rule<T> {
+export interface InspectorRule<T> {
 	/** 方法列表 */
-	methods: Method[]
+	methods: InspectorMethod[]
 	/** 路径 */
 	path: string
 	/** 路径正则表达式 */
@@ -29,17 +29,17 @@ export interface Rule<T> {
 	meta?: T
 }
 
-export interface RuleConf<T> {
+export interface InspectorRuleConf<T> {
 	/** 方法列表 */
-	methods: Method[]
+	methods: InspectorMethod[]
 	/** 路径 */
 	path: string
 	/** 元数据 */
 	meta?: T
 }
-export interface RuleSerialize<T> {
+export interface InspectorRuleSerialize<T> {
 	/** 方法列表 */
-	methods: Method[]
+	methods: InspectorMethod[]
 	/** 路径 */
 	path: string
 	/** 正则表达式序列化信息 */

@@ -1,4 +1,5 @@
 import type { ExtractOptions } from './types/index.js'
+export * from './types/index.js'
 
 /**
  * 提取对象指定字段

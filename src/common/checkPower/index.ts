@@ -4,14 +4,15 @@ import { isObject } from '../../utils/isObject/index.js'
 import { isString } from '../../utils/isString/index.js'
 import { readonly } from '../../utils/readonly/index.js'
 import { pathToRegexp } from 'path-to-regexp'
-import type { Identity, Methods, Route, UseConfig, UseIdenttiy, UseRoute } from './types/index.js'
+import type { CheckPowerIdentity, CheckPowerMethods, CheckPowerRoute, CheckPowerUseConfig, CheckPowerUseIdenttiy, CheckPowerUseRoute } from './types/index.js'
+export * from './types/index.js'
 
 /**
  * @deprecated 请改用 Inspector.create()
  */
 export const createCheckPower = <T extends Record<string, any>>(
 	config: {
-		[K in keyof T]: Identity
+		[K in keyof T]: CheckPowerIdentity
 	}
 	// options?: Options
 ) => {
@@ -19,7 +20,7 @@ export const createCheckPower = <T extends Record<string, any>>(
 		throw new TypeError('"config" must be an object')
 	}
 
-	const useConfig: UseConfig<T> = Object.create(null) as UseConfig<T>
+	const useConfig: CheckPowerUseConfig<T> = Object.create(null) as CheckPowerUseConfig<T>
 
 	Object.entries(config).forEach(([key, value]) => {
 		if (!isObject(value)) {
@@ -38,16 +39,16 @@ export const createCheckPower = <T extends Record<string, any>>(
 		const useIdenttiy = {
 			id: key,
 			base,
-			router: router.map((route: Route, index: number) => parseRoute(route, index, key, base)),
-			whiteRouter: whiteRouter.map((route: Route, index: number) => parseRoute(route, index, key, base))
+			router: router.map((route: CheckPowerRoute, index: number) => parseRoute(route, index, key, base)),
+			whiteRouter: whiteRouter.map((route: CheckPowerRoute, index: number) => parseRoute(route, index, key, base))
 		}
 
 		useConfig[key as keyof T] = useIdenttiy
 	})
 
-	const getIdentity = (identity: keyof T, method: Methods, path: string) => {
+	const getIdentity = (identity: keyof T, method: CheckPowerMethods, path: string) => {
 		const id = identity as string
-		const useIdenttiy: UseIdenttiy = useConfig[id]
+		const useIdenttiy: CheckPowerUseIdenttiy = useConfig[id]
 		if (!useIdenttiy) {
 			return false
 		}
@@ -69,15 +70,15 @@ export const createCheckPower = <T extends Record<string, any>>(
 		 * @params method 方法
 		 * @params path 路径
 		 */
-		verify(identity: keyof T, method: Methods, path: string) {
+		verify(identity: keyof T, method: CheckPowerMethods, path: string) {
 			const useIdenttiy = getIdentity(identity, method, path)
 			if (!useIdenttiy) {
 				return false
 			}
 
 			const { whiteRouter, router } = useIdenttiy
-			const fn = (route: UseRoute) => {
-				if (route.methods.includes(method.toUpperCase() as Methods) && route.regex.test(path)) {
+			const fn = (route: CheckPowerUseRoute) => {
+				if (route.methods.includes(method.toUpperCase() as CheckPowerMethods) && route.regex.test(path)) {
 					return true
 				}
 			}
@@ -97,14 +98,14 @@ export const createCheckPower = <T extends Record<string, any>>(
 		 * @params method 方法
 		 * @params path 路径
 		 */
-		hasRouter(identity: keyof T, method: Methods, path: string) {
+		hasRouter(identity: keyof T, method: CheckPowerMethods, path: string) {
 			const useIdenttiy = getIdentity(identity, method, path)
 			if (!useIdenttiy) {
 				return false
 			}
 			const { router } = useIdenttiy
-			return router.some((route: UseRoute) => {
-				if (route.methods.includes(method.toUpperCase() as Methods) && route.regex.test(path)) {
+			return router.some((route: CheckPowerUseRoute) => {
+				if (route.methods.includes(method.toUpperCase() as CheckPowerMethods) && route.regex.test(path)) {
 					return true
 				}
 			})
@@ -117,14 +118,14 @@ export const createCheckPower = <T extends Record<string, any>>(
 		 * @params method 方法
 		 * @params path 路径
 		 */
-		hasWhiteRouter(identity: keyof T, method: Methods, path: string) {
+		hasWhiteRouter(identity: keyof T, method: CheckPowerMethods, path: string) {
 			const useIdenttiy = getIdentity(identity, method, path)
 			if (!useIdenttiy) {
 				return false
 			}
 			const { whiteRouter } = useIdenttiy
-			return whiteRouter.some((route: UseRoute) => {
-				if (route.methods.includes(method.toUpperCase() as Methods) && route.regex.test(path)) {
+			return whiteRouter.some((route: CheckPowerUseRoute) => {
+				if (route.methods.includes(method.toUpperCase() as CheckPowerMethods) && route.regex.test(path)) {
 					return true
 				}
 			})
@@ -132,7 +133,7 @@ export const createCheckPower = <T extends Record<string, any>>(
 	}
 }
 
-const methodList: Methods[] = [
+const methodList: CheckPowerMethods[] = [
 	'GET',
 	'POST',
 	'PUT',
@@ -145,7 +146,7 @@ const methodList: Methods[] = [
 	'LINK',
 	'UNLINK'
 ]
-const parseRoute = (route: Route, index: number, key: string, base: string) => {
+const parseRoute = (route: CheckPowerRoute, index: number, key: string, base: string) => {
 	if (!isObject(route)) {
 		throw new TypeError(`"config.${key}.router[${index}]" must be an object`)
 	}
@@ -155,12 +156,12 @@ const parseRoute = (route: Route, index: number, key: string, base: string) => {
 		throw new TypeError(`"config.${key}.router[${index}].path" must be a string`)
 	}
 
-	let useMethods: Methods[] = []
+	let useMethods: CheckPowerMethods[] = []
 	const throwErr = new TypeError(`"config.${key}.router[${index}].methods" must be a ${methodList.join(' | ')}`)
 	if (methods === '*') {
 		useMethods = [...methodList]
 	} else if (isString(methods)) {
-		const method = methods.toUpperCase() as Methods
+		const method = methods.toUpperCase() as CheckPowerMethods
 		if (!methodList.includes(method)) {
 			throw throwErr
 		}
@@ -170,7 +171,7 @@ const parseRoute = (route: Route, index: number, key: string, base: string) => {
 			if (!isString(method)) {
 				throw throwErr
 			}
-			method = method.toUpperCase() as Methods
+			method = method.toUpperCase() as CheckPowerMethods
 			if (!methodList.includes(method)) {
 				throw throwErr
 			}

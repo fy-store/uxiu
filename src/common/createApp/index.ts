@@ -1,15 +1,16 @@
 import http from 'http'
 import Koa from 'koa'
-import type { MountedCtx, Config } from './types/index.js'
+import type { CreateAppMountedCtx, CreateAppConfig } from './types/index.js'
 import { readonly } from '@/utils/index.js'
+export * from './types/index.js'
 
 /**
  * 创建一个 koa 实例
  * @param config 配置选项
  */
-export async function createApp(config: Config = {}) {
+export async function createApp(config: CreateAppConfig = {}) {
 	const { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset } = config.koaOptions ?? {}
-	const ctx: MountedCtx = {
+	const ctx: CreateAppMountedCtx = {
 		env: process.env.NODE_ENV === 'development' ? 'development' : 'production',
 		port: config.port ?? 3323,
 		app: null,

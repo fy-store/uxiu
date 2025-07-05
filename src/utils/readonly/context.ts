@@ -1,4 +1,4 @@
-import { type Options } from './types/index.js'
+import { ReadonlyUnDeep, type ReadonlyOptions } from './types/index.js'
 
 export const SYSTEM_SIGN = Symbol('systemSign')
 export const proxyCollection = new WeakMap<
@@ -6,8 +6,8 @@ export const proxyCollection = new WeakMap<
 	{
 		isShallowReadonly: boolean
 		data: any
-		sign: Options['sign']
-		tip: Options['tip']
+		sign: ReadonlyOptions['sign']
+		tip: ReadonlyOptions['tip']
 	}
 >()
 
@@ -50,10 +50,10 @@ export const isReadonly = (target: any) => {
  * - 转换失败将抛出错误
  * @param target 目标
  */
-export const toOrigin = <T extends object>(target: T, sign?: any): T => {
+export const toOrigin = <T extends object>(target: T, sign?: any): ReadonlyUnDeep<T> => {
 	const info = proxyCollection.get(target)
 	if (!info) {
-		throw new Error('\'target\' is not readonly')
+		throw new Error("'target' is not readonly")
 	}
 
 	if (sign === SYSTEM_SIGN) {
@@ -61,7 +61,7 @@ export const toOrigin = <T extends object>(target: T, sign?: any): T => {
 	}
 
 	if (!Object.is(info.sign, sign)) {
-		throw new Error('\'sign\' is not match')
+		throw new Error("'sign' is not match")
 	}
 	return info.data
 }
@@ -73,10 +73,10 @@ export const tipList = ['error', 'warn', 'none']
  * - 获取失败将抛出错误
  * @param target 目标
  */
-export const getTip = (target: any): Options['tip'] => {
+export const getTip = (target: any): ReadonlyOptions['tip'] => {
 	const info = proxyCollection.get(target)
 	if (!info) {
-		throw new Error('\'target\' is not readonly')
+		throw new Error("'target' is not readonly")
 	}
 	return info.tip
 }

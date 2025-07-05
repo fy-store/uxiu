@@ -11,8 +11,9 @@ import {
 } from './context.js'
 import { isReferenceValue } from '../isReferenceValue/index.js'
 import { isFunction } from '../isFunction/index.js'
-import type { DeepReadonly, Options } from './types/index.js'
+import type { ReadonlyDeep, ReadonlyOptions } from './types/index.js'
 import tipMap from './tipMap.js'
+export * from './types/index.js'
 
 /**
  * 将引用数据包装为一个深层只读引用
@@ -21,7 +22,7 @@ import tipMap from './tipMap.js'
  * @param target 包装目标
  * @param options 配置选项
  */
-export const readonly = <T extends Object>(target: T, options: Options = {}): DeepReadonly<T> => {
+export const readonly = <T extends Object>(target: T, options: ReadonlyOptions = {}): ReadonlyDeep<T> => {
 	if (!isReferenceValue(target)) {
 		throw new TypeError(`'target' must be an object, ${String(target)}`)
 	}
@@ -45,7 +46,7 @@ export const readonly = <T extends Object>(target: T, options: Options = {}): De
 	}
 
 	if (isShallowReadonly(target)) {
-		target = toOrigin(target, SYSTEM_SIGN)
+		target = toOrigin(target, SYSTEM_SIGN) as T
 	}
 
 	const proxy = new Proxy(target, {

@@ -11,18 +11,18 @@ import { isString } from '../isString/index.js'
 import { isSymbol } from '../isSymbol/index.js'
 import { isUndefined } from '../isUndefined/index.js'
 import type {
-	FieldOptions,
-	FieldConfs,
-	RequiredConf,
-	FieldConf,
-	TypeConf,
-	TypeExpect,
-	LengthConf,
-	RangeConf,
-	CheckTypeMap,
-	HookOptions,
-	ConfFiledList,
-	Custom
+	CheckFieldOptions,
+	CheckFieldConfs,
+	CheckRequiredConf,
+	CheckFieldConf,
+	CheckTypeConf,
+	CheckTypeExpect,
+	CheckLengthConf,
+	CheckRangeConf,
+	CheckVerifyTypeMap,
+	CheckHookOptions,
+	CheckConfFiledList,
+	CheckCustom
 } from './types/index.js'
 
 export const throwErr = (field: string, needType: string, fromIndex: number) => {
@@ -33,8 +33,8 @@ export const throwErr = (field: string, needType: string, fromIndex: number) => 
 	)
 }
 
-export default (fieldsOptions: FieldOptions[]): FieldConfs[] => {
-	const fieldConfs: FieldConfs[] = []
+export default (fieldsOptions: CheckFieldOptions[]): CheckFieldConfs[] => {
+	const fieldConfs: CheckFieldConfs[] = []
 	fieldsOptions.forEach((fieldOptions, i) => {
 		if (!isObject(fieldOptions)) {
 			throwErr('', 'object', i)
@@ -61,14 +61,14 @@ export default (fieldsOptions: FieldOptions[]): FieldConfs[] => {
 	return fieldConfs
 }
 
-const parseField = ({ field }: FieldOptions, i: number): FieldConf => {
+const parseField = ({ field }: CheckFieldOptions, i: number): CheckFieldConf => {
 	if (!isString(field)) {
 		throwErr('field', 'string', i)
 	}
 	return field
 }
 
-const parseRequired = ({ required }: FieldOptions, i: number): RequiredConf => {
+const parseRequired = ({ required }: CheckFieldOptions, i: number): CheckRequiredConf => {
 	if (isUndefined(required)) {
 		return true
 	}
@@ -80,7 +80,7 @@ const parseRequired = ({ required }: FieldOptions, i: number): RequiredConf => {
 	return required
 }
 
-const parseRequiredFail = ({ requiredFail, field }: FieldOptions, i: number): string => {
+const parseRequiredFail = ({ requiredFail, field }: CheckFieldOptions, i: number): string => {
 	if (isUndefined(requiredFail)) {
 		return `'${field}' is required`
 	}
@@ -92,7 +92,7 @@ const parseRequiredFail = ({ requiredFail, field }: FieldOptions, i: number): st
 	return requiredFail
 }
 
-const typeExpect: TypeExpect[] = [
+const typeExpect: CheckTypeExpect[] = [
 	'any',
 	'number',
 	'effectiveNumber',
@@ -110,7 +110,7 @@ const typeExpect: TypeExpect[] = [
 	'function'
 ]
 
-const checkTypeMap: CheckTypeMap = {
+const checkTypeMap: CheckVerifyTypeMap = {
 	any: () => true,
 	number: isNumber,
 	effectiveNumber: isEffectiveNumber,
@@ -131,7 +131,7 @@ const checkTypeMap: CheckTypeMap = {
 	bigint: isBigint,
 	function: isFunction
 }
-const parseType = ({ type, field }: FieldOptions, i: number): TypeConf => {
+const parseType = ({ type, field }: CheckFieldOptions, i: number): CheckTypeConf => {
 	if (isUndefined(type)) {
 		return {
 			use: false,
@@ -149,7 +149,7 @@ const parseType = ({ type, field }: FieldOptions, i: number): TypeConf => {
 	}
 
 	const { expect, success = '', fail = `'${field}' type must be a ${expect}`, transform, verify } = type
-	let useExpect: TypeExpect[] = []
+	let useExpect: CheckTypeExpect[] = []
 	let useCheckFn: ((...args: any) => boolean)[] = []
 	if (isArray(expect)) {
 		expect.forEach((it, j) => {
@@ -180,7 +180,7 @@ const parseType = ({ type, field }: FieldOptions, i: number): TypeConf => {
 	}
 }
 
-const parseLength = ({ length, field }: FieldOptions, i: number): LengthConf => {
+const parseLength = ({ length, field }: CheckFieldOptions, i: number): CheckLengthConf => {
 	if (isUndefined(length)) {
 		return {
 			use: false,
@@ -243,7 +243,7 @@ const parseLength = ({ length, field }: FieldOptions, i: number): LengthConf => 
 	}
 }
 
-const parseRange = ({ range, field }: FieldOptions, i: number): RangeConf => {
+const parseRange = ({ range, field }: CheckFieldOptions, i: number): CheckRangeConf => {
 	if (isUndefined(range)) {
 		return {
 			use: false,
@@ -306,7 +306,7 @@ const parseRange = ({ range, field }: FieldOptions, i: number): RangeConf => {
 	}
 }
 
-const parseCustoms = ({ customs }: FieldOptions, i: number): Custom[] => {
+const parseCustoms = ({ customs }: CheckFieldOptions, i: number): CheckCustom[] => {
 	if (isUndefined(customs)) {
 		return []
 	}
@@ -324,7 +324,7 @@ const parseCustoms = ({ customs }: FieldOptions, i: number): Custom[] => {
 	})
 }
 
-const chekcHook = (options: HookOptions, field: ConfFiledList[number], fromIndex: number) => {
+const chekcHook = (options: CheckHookOptions, field: CheckConfFiledList[number], fromIndex: number) => {
 	const { success = '', fail = '', transform, verify } = options
 	if (!isString(success)) {
 		throwErr(`${field}.success`, 'string', fromIndex)

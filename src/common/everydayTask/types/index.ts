@@ -1,4 +1,4 @@
-export interface TimedTasksOptions {
+export interface EverydayTaskTimedTasksOptions {
 	/**
 	 * 时, 0-59, 默认为 0
 	 */

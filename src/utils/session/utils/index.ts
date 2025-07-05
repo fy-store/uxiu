@@ -1,10 +1,10 @@
-import type { Store } from '../types/index.js'
+import type { SessionStore } from '../types/index.js'
 import { randomUUID } from 'crypto'
 
 /**
  * 生成一个随机id
  */
-export const createId = () => {
+export const createSessionId = () => {
 	return `${randomUUID()}_${Date.now()}`
 }
 
@@ -12,13 +12,13 @@ export const createId = () => {
  * 克隆一个符合 JSON 序列化的数据, 如果克隆失败将抛出错误
  * @param data 符合 JSON 序列化的结构数据
  */
-export const clone = <T>(data: T): T => {
+export const Sessionclone = <T>(data: T): T => {
 	return JSON.parse(JSON.stringify(data))
 }
 
-export const createStore = (): Store => {
+export const createStore = (): SessionStore => {
 	const map = new Map()
-	const store: Store = {
+	const store: SessionStore = {
 		async add(id, value) {
 			map.set(id, value)
 			return map.get(id)

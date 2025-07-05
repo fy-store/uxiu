@@ -1,4 +1,5 @@
-import type { AnyKeyObj, VerifyConfig } from './types/index.js'
+import type { HasInvalidAnyKeyObj, HasInvalidVerifyConfig } from './types/index.js'
+export * from './types/index.js'
 
 /**
  * 判断一个数组中或对象上是否存在无效值
@@ -14,7 +15,7 @@ import type { AnyKeyObj, VerifyConfig } from './types/index.js'
 export const hasInvalid = <T extends object>(
 	target: T,
 	ignoreField?: (keyof T)[],
-	verifyConfig?: VerifyConfig & AnyKeyObj
+	verifyConfig?: HasInvalidVerifyConfig & HasInvalidAnyKeyObj
 ) => {
 	const config = Object.assign(
 		{

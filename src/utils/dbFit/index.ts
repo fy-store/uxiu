@@ -1,12 +1,13 @@
-import type { EventType, Options } from './types/index.js'
+import type { DbFitEventType, DbFitOptions } from './types/index.js'
 import { isObject } from '../isObject/index.js'
 import { readonly } from '../readonly/index.js'
 import Event from '@yishu/event'
+export * from './types/index.js'
 
 /**
  * 数据库模型适配器
  */
-export class DbFit<T extends Options = Options> extends Event<EventType> {
+export class DbFit<T extends DbFitOptions = DbFitOptions> extends Event<DbFitEventType> {
 	#isExec = false
 	#tasks = []
 	#execIndex: number = null
@@ -177,7 +178,7 @@ export class DbFit<T extends Options = Options> extends Event<EventType> {
  * @param optionsTemplate 配置选项
  * @deprecated 生成的 .d.ts 类型不正确, 推荐自定义工厂函数保证开发环境类型正确
  */
-export function createDbFit<T extends Options = Options>(optionsTemplate: T) {
+export function createDbFit<T extends DbFitOptions = DbFitOptions>(optionsTemplate: T) {
 	return class DbFitModel extends DbFit<T> {
 		constructor(options?: Partial<T>) {
 			super({ ...optionsTemplate, ...(options ?? {}) })

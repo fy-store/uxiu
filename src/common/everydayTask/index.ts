@@ -1,4 +1,5 @@
-import type { TimedTasksOptions } from './types/index.js'
+import type { EverydayTaskTimedTasksOptions } from './types/index.js'
+export * from './types/index.js'
 
 /**
  * 每日定时任务
@@ -8,7 +9,7 @@ import type { TimedTasksOptions } from './types/index.js'
  * @param options 配置选项
  * @returns 一个函数, 调用该函数即可停止下一次任务
  */
-export const everydayTask = (callback: (clearTimer: () => void) => void, options?: TimedTasksOptions) => {
+export const everydayTask = (callback: (clearTimer: () => void) => void, options?: EverydayTaskTimedTasksOptions) => {
 	let ctx = {
 		isNext: true,
 		timer: null as NodeJS.Timeout | number

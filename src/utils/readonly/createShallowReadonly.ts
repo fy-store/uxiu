@@ -1,6 +1,6 @@
 import { isReferenceValue } from '../isReferenceValue/index.js'
 import { proxyCollection, isReadonly, SYSTEM_SIGN, tipList } from './context.js'
-import { type Options } from './types/index.js'
+import { type ReadonlyOptions } from './types/index.js'
 import tipMap from './tipMap.js'
 
 /**
@@ -9,7 +9,7 @@ import tipMap from './tipMap.js'
  * @param target 包装目标
  * @param options 配置选项
  */
-export default <T extends Object>(target: T, options: Options = {}): Readonly<T> => {
+export default <T extends Object>(target: T, options: ReadonlyOptions = {}): Readonly<T> => {
 	if (!isReferenceValue(target)) {
 		throw new TypeError(`'target' must be an object, ${String(target)}`)
 	}

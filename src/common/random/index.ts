@@ -1,5 +1,5 @@
 import { readonly } from '@/utils/index.js'
-import type { DeepReadonly } from '@/utils/readonly/types/index.js'
+import type { ReadonlyDeep } from '@/utils/readonly/types/index.js'
 import { randomInt } from 'crypto'
 
 /**
@@ -127,7 +127,7 @@ random.all = readonly(all, { sign: SIGN })
 
 const randomStr = (
 	length: number,
-	strList: string[] | Readonly<string[]> | DeepReadonly<string[]> = [...az, ...AZ]
+	strList: string[] | Readonly<string[]> | ReadonlyDeep<string[]> = [...az, ...AZ]
 ) => {
 	const list = (() => {
 		try {

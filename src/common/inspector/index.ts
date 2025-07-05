@@ -1,7 +1,8 @@
-import type { Conf, Options, Rule, Method, RuleConf, RuleSerialize } from './types/index.js'
+import type { InspectorConf, InspectorOptions, InspectorRule, InspectorMethod, InspectorRuleConf, InspectorRuleSerialize } from './types/index.js'
 import { isArray, isBoolean, isObject, isString } from '../../utils/index.js'
 import { pathToRegexp } from 'path-to-regexp'
 import path from 'path/posix'
+export * from './types/index.js'
 
 const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TRACE', 'CONNECT'] as const
 
@@ -10,7 +11,7 @@ const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS', 'TR
  * @param confs 规则配置
  * @param options 配置选项
  */
-export function create<T = any>(confs: Conf<T>[], options: Options = {}): Rule<T>[] {
+export function create<T = any>(confs: InspectorConf<T>[], options: InspectorOptions = {}): InspectorRule<T>[] {
 	if (!isArray(confs)) {
 		throw new TypeError('confs must be an array')
 	}
@@ -65,7 +66,7 @@ export function create<T = any>(confs: Conf<T>[], options: Options = {}): Rule<T
 
 		const p = path.join(base, conf.path)
 
-		const result: Rule<T> = {
+		const result: InspectorRule<T> = {
 			methods: (function () {
 				if (conf.methods === '*') {
 					return [...methods]
@@ -91,7 +92,7 @@ export function create<T = any>(confs: Conf<T>[], options: Options = {}): Rule<T
  * @param method 方法
  * @param path 路径
  */
-export function check<T = any>(rules: Rule<T>[], method: Method, path: string) {
+export function check<T = any>(rules: InspectorRule<T>[], method: InspectorMethod, path: string) {
 	return rules.some((rule) => {
 		return rule.methods.includes(method) && rule.regex.test(path)
 	})
@@ -101,9 +102,9 @@ export function check<T = any>(rules: Rule<T>[], method: Method, path: string) {
  * 获取规则中的配置
  * @param rules 规则列表
  */
-export function getConf<T = any>(rules: Rule<T>[]): RuleConf<T>[] {
+export function getConf<T = any>(rules: InspectorRule<T>[]): InspectorRuleConf<T>[] {
 	return rules.map((rule) => {
-		const result: RuleConf<T> = {
+		const result: InspectorRuleConf<T> = {
 			methods: [...rule.methods],
 			path: rule.path
 		}
@@ -118,9 +119,9 @@ export function getConf<T = any>(rules: Rule<T>[]): RuleConf<T>[] {
  * 规则序列化
  * @param rules 规则列表
  */
-export function rulesToSerialize<T = any>(rules: Rule<T>[]): RuleSerialize<T>[] {
+export function rulesToSerialize<T = any>(rules: InspectorRule<T>[]): InspectorRuleSerialize<T>[] {
 	return rules.map((rule) => {
-		const result: RuleSerialize<T> = {
+		const result: InspectorRuleSerialize<T> = {
 			methods: [...rule.methods],
 			path: rule.path,
 			regex: {
@@ -139,9 +140,9 @@ export function rulesToSerialize<T = any>(rules: Rule<T>[]): RuleSerialize<T>[] 
  * 序列化转回规则
  * @param rules 序列化规则列表
  */
-export function serializeToRules<T = any>(ruleSerializes: RuleSerialize<T>[]): Rule<T>[] {
+export function serializeToRules<T = any>(ruleSerializes: InspectorRuleSerialize<T>[]): InspectorRule<T>[] {
 	return ruleSerializes.map((rule) => {
-		const result: Rule<T> = {
+		const result: InspectorRule<T> = {
 			methods: [...rule.methods],
 			path: rule.path,
 			regex: new RegExp(rule.regex.source, rule.regex.flags)

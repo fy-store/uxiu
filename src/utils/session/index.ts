@@ -1,13 +1,14 @@
-import type { Options } from './types/index.js'
-import type { DeepReadonly } from '../readonly/types/index.js'
+import type { SessionOptions } from './types/index.js'
+import type { ReadonlyDeep } from '../readonly/types/index.js'
 import { isArray, isObject, readonly } from '../index.js'
-import { clone, createId, createStore } from './utils/index.js'
-export { createId, clone }
+import { Sessionclone, createSessionId, createStore } from './utils/index.js'
+export { createSessionId, Sessionclone }
+export * from './types/index.js'
 
 /**
  * 创建一个会话存储实例
  */
-export const createSessionStore = (options: Options = {}) => {
+export const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) => {
 	if (!isObject(options)) {
 		throw new Error('options must be an object')
 	}
@@ -26,7 +27,7 @@ export const createSessionStore = (options: Options = {}) => {
 		if (!isObject(value)) {
 			throw new Error(`load[${i}].value must be a object`)
 		}
-		store.set(id, clone(value))
+		store.set(id, Sessionclone(value))
 	})
 
 	const sessionStore = {
@@ -36,12 +37,12 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param id 会话id
 		 * @returns 只读的会话数据
 		 */
-		async get<T extends object>(id: string): Promise<DeepReadonly<T>> {
+		async get<T1 extends object = T>(id: string): Promise<ReadonlyDeep<T1>> {
 			const data = await store.get(id)
 			if (!data) {
 				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
-			return readonly(data as T)
+			return readonly(data as T1)
 		},
 
 		/**
@@ -62,7 +63,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param value 会话数据
 		 * @returns 只读的新的会话数据
 		 */
-		async set<T extends object>(id: string, value: T): Promise<DeepReadonly<T>> {
+		async set<T1 extends object = T>(id: string, value: T1): Promise<ReadonlyDeep<T1>> {
 			if (!(await sessionStore.has(id))) {
 				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
@@ -71,8 +72,8 @@ export const createSessionStore = (options: Options = {}) => {
 				throw new Error(`value -> '${String(value)}' must be a object`)
 			}
 
-			const data = clone(value)
-			return readonly((await store.set(id, data)) as T)
+			const data = Sessionclone(value)
+			return readonly((await store.set(id, data)) as T1)
 		},
 
 		/**
@@ -80,12 +81,12 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param value 会话数据, 必须符合 JSON 序列化, 且必须是对象
 		 * @returns 会话id
 		 */
-		async create(value: object): Promise<string> {
+		async create<T1 extends object = T>(value: T1): Promise<string> {
 			if (!isObject(value)) {
 				throw new Error(`value -> '${String(value)}' must be a object`)
 			}
-			const id = createId()
-			await store.add(id, clone(value))
+			const id = createSessionId()
+			await store.add(id, Sessionclone(value))
 			return id
 		},
 
@@ -95,11 +96,11 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param value 补丁数据
 		 * @returns 只读的新的会话数据
 		 */
-		async patch<T extends object>(id: string, value: T): Promise<T> {
+		async patch<T1 extends object = T>(id: string, value: T1): Promise<T1> {
 			try {
 				const data = await sessionStore.get(id)
-				const newData = { ...data, ...clone(value) }
-				return (await sessionStore.set(id, newData)) as T
+				const newData = { ...data, ...Sessionclone(value) }
+				return (await sessionStore.set(id, newData)) as T1
 			} catch (error) {
 				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
@@ -110,11 +111,11 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param id 会话id
 		 * @returns 被删除的会话数据
 		 */
-		async del<T extends object>(id: string): Promise<T> {
+		async del<T1 extends object = T>(id: string): Promise<T1> {
 			if (!(await sessionStore.has(id))) {
 				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
-			return (await store.del(id)) as T
+			return (await store.del(id)) as T1
 		},
 
 		/**
@@ -123,7 +124,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * @param id 会话id
 		 * @returns 被删除的会话数据
 		 */
-		async delete<T extends object>(id: string): Promise<T> {
+		async delete<T1 extends object = T>(id: string): Promise<T1> {
 			return sessionStore.del(id)
 		},
 
@@ -133,9 +134,9 @@ export const createSessionStore = (options: Options = {}) => {
 		 * - id 会话id
 		 * - value 只读的会话数据
 		 */
-		async each(fn: (id: string, value: Readonly<object>) => void): Promise<void> {
+		async each<T1 extends object = T>(fn: (id: string, value: ReadonlyDeep<T1>) => void): Promise<void> {
 			return await store.each((id, value) => {
-				fn(id, readonly(value))
+				fn(id, readonly(value) as ReadonlyDeep<T1>)
 			})
 		},
 
@@ -146,7 +147,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * - value 会话数据
 		 * @returns 一个只读的会话数据列表
 		 */
-		async all() {
+		async all<T1 extends object = T>(): Promise<ReadonlyDeep<T1[]>> {
 			const data = []
 			await sessionStore.each((id, value) => {
 				data.push([id, value])
@@ -158,7 +159,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * 获取所有会话key
 		 * @returns 一个只读的会话key列表
 		 */
-		async keys() {
+		async keys(): Promise<ReadonlyDeep<string[]>> {
 			const data = []
 			await sessionStore.each((id) => {
 				data.push(id)
@@ -170,7 +171,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * 获取所有会话内容
 		 * @returns 一个只读的会话内容列表
 		 */
-		async values() {
+		async values<T1 extends object = T>(): Promise<ReadonlyDeep<T1[]>> {
 			const data = []
 			await sessionStore.each((_id, value) => {
 				data.push(value)
@@ -182,7 +183,7 @@ export const createSessionStore = (options: Options = {}) => {
 		 * 清空所有会话数据
 		 * @returns 被清空的会话数据列表
 		 */
-		async clear() {
+		async clear<T1 extends object = T>(): Promise<ReadonlyDeep<T1[]>> {
 			const data = []
 			await sessionStore.each(async (id, value) => {
 				data.push([id, value])

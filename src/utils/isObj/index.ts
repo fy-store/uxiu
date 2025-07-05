@@ -1,4 +1,5 @@
 import type { IsObj } from './types/index.js'
+export * from './types/index.js'
 
 /**
  * 判断一个数据是否为对象, 排除数组和函数

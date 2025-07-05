@@ -1,4 +1,4 @@
-import type { ConfFiledList, FieldConfs, FieldResult, ListItem, ListItemCustom } from './types/index.js'
+import type { CheckConfFiledList, CheckFieldConfs, FieldResult, CheckListItem, CheckListItemCustom } from './types/index.js'
 import { isArray } from '../isArray/index.js'
 import { isNumber } from '../isNumber/index.js'
 import { isObject } from '../isObject/index.js'
@@ -12,20 +12,20 @@ import { readonly } from '../readonly/index.js'
  * @param data 数据
  * @returns 校验结果
  */
-export default (fieldConfs: FieldConfs[], data: object) => {
+export default (fieldConfs: CheckFieldConfs[], data: object) => {
 	let result = true
 	/** 成功字段列表 */
-	const successList: ListItem[] = []
+	const successList: CheckListItem[] = []
 	/** 失败字段列表 */
-	const failList: ListItem[] = []
+	const failList: CheckListItem[] = []
 	/** 校验字段列表 */
-	const verifyList: ListItem[] = []
+	const verifyList: CheckListItem[] = []
 
 	// 根据字段配置校验数据对应的字段
 	fieldConfs.forEach((conf, fieldIndex) => {
 		const { field, required, requiredFail, customs } = conf
 
-		const info: ListItem = {
+		const info: CheckListItem = {
 			field,
 			data: data[field],
 			result: true,
@@ -109,7 +109,7 @@ export default (fieldConfs: FieldConfs[], data: object) => {
 					})
 				)
 
-				let itemResult: ListItemCustom = null
+				let itemResult: CheckListItemCustom = null
 				if (isObject(customResult)) {
 					itemResult = {
 						name: isUndefined(customResult.message) ? '' : String(customResult.name),
@@ -148,7 +148,7 @@ export default (fieldConfs: FieldConfs[], data: object) => {
 	}
 }
 
-export const confFiledList: ConfFiledList = ['type', 'length', 'range']
+export const confFiledList: CheckConfFiledList = ['type', 'length', 'range']
 
 const createFieldResult = (): FieldResult => {
 	return {
@@ -157,7 +157,7 @@ const createFieldResult = (): FieldResult => {
 	}
 }
 
-const setFail = (conf: FieldConfs, info: ListItem, field: ConfFiledList[number]) => {
+const setFail = (conf: CheckFieldConfs, info: CheckListItem, field: CheckConfFiledList[number]) => {
 	info.result = false
 	info[field].result = false
 	info[field].message = conf[field].fail
@@ -166,15 +166,15 @@ const setFail = (conf: FieldConfs, info: ListItem, field: ConfFiledList[number])
 /**
  * 是否通过校验映射表
  */
-const confConditionMap: { [k in ConfFiledList[number]]: (conf: FieldConfs, info: ListItem) => boolean } = {
-	type(conf: FieldConfs, info: ListItem) {
+const confConditionMap: { [k in CheckConfFiledList[number]]: (conf: CheckFieldConfs, info: CheckListItem) => boolean } = {
+	type(conf: CheckFieldConfs, info: CheckListItem) {
 		const { type } = conf
 		const { data } = info
 		if (type.checkFn.length === 0) return true
 		return type.checkFn.some((it) => it(data))
 	},
 
-	length(conf: FieldConfs, info: ListItem) {
+	length(conf: CheckFieldConfs, info: CheckListItem) {
 		const { length } = conf
 		const { data } = info
 		if (!(isArray(data) || isString(data))) {
@@ -183,7 +183,7 @@ const confConditionMap: { [k in ConfFiledList[number]]: (conf: FieldConfs, info:
 		return data.length >= length.expect.min && data.length <= length.expect.max
 	},
 
-	range(conf: FieldConfs, info: ListItem) {
+	range(conf: CheckFieldConfs, info: CheckListItem) {
 		const { range } = conf
 		const { data } = info
 		if (!isNumber(data)) {

@@ -1,22 +1,22 @@
-import type { DeepReadonly } from '@/utils/readonly/types/index.js'
+import type { ReadonlyDeep } from '@/utils/readonly/types/index.js'
 
-export type HookOptionsVerifyCtx = {
+export type CheckHookOptionsVerifyCtx = {
 	/** 校验的字段 */
 	field: string
 	/** 校验字段在配置中的下标 */
 	fieldIndex: number
 	/** 字段配置列表 */
-	conf: FieldConfs
+	conf: CheckFieldConfs
 	/** 字段信息列表 */
-	info: ListItem
+	info: CheckListItem
 }
-export type HookOptions = {
+export type CheckHookOptions = {
 	/** 校验成功消息 */
 	success?: string
 	/** 校验失败消息 */
 	fail?: string
 	/** 钩子函数: 校验前处理函数 */
-	transform?: (data: any, fieldConfs: FieldConfs) => any
+	transform?: (data: any, fieldConfs: CheckFieldConfs) => any
 	/** 钩子函数: 自定义校验函数, 用于控制/拓展系统校验函数, 返回 true 则通过, 返回 false 则失败 */
 	verify?: (
 		/** 字段数据 */
@@ -24,7 +24,7 @@ export type HookOptions = {
 		/** 系统校验函数, 调用该函数不会影响系统数据 */
 		checkFn: () => boolean,
 		/** 校验上下文 */
-		ctx: HookOptionsVerifyCtx
+		ctx: CheckHookOptionsVerifyCtx
 	) =>
 		| boolean
 		| {
@@ -35,12 +35,12 @@ export type HookOptions = {
 		  }
 }
 
-export type TypeOptions = HookOptions & {
+export type CheckTypeOptions = CheckHookOptions & {
 	/** 期待值 */
-	expect: TypeExpect | TypeExpect[]
+	expect: CheckTypeExpect | CheckTypeExpect[]
 }
 
-export type LengthOptions = HookOptions & {
+export type CheckLengthOptions = CheckHookOptions & {
 	/** 期待值 */
 	expect: {
 		/** 最小值 */
@@ -50,7 +50,7 @@ export type LengthOptions = HookOptions & {
 	}
 }
 
-export type RangeOptions = HookOptions & {
+export type CheckRangeOptions = CheckHookOptions & {
 	/** 期待值 */
 	expect: {
 		/** 最小值 */
@@ -59,24 +59,24 @@ export type RangeOptions = HookOptions & {
 		max: number
 	}
 }
-export type CustomCtx = {
+export type CheckCustomCtx = {
 	/** 校验的字段 */
 	field: string
 	/** 校验字段在配置中的下标 */
 	fieldIndex: number
 	/** 字段配置列表 */
-	conf: FieldConfs
+	conf: CheckFieldConfs
 	/** 字段信息列表 */
-	info: ListItem
+	info: CheckListItem
 	/** 自定义校验器在配置中的下标 */
 	customIndex: number
 }
 
-export type Custom = (
+export type CheckCustom = (
 	/** 字段数据 */
 	data: any,
 	/** 校验上下文 */
-	ctx: DeepReadonly<CustomCtx>
+	ctx: ReadonlyDeep<CheckCustomCtx>
 ) =>
 	| boolean
 	| {
@@ -88,7 +88,7 @@ export type Custom = (
 			message: string
 	  }
 
-export interface FieldOptions<T = Record<string, string>> {
+export interface CheckFieldOptions<T = Record<string, string>> {
 	/** 校验的字段 */
 	field: keyof T
 	/** 字段是否必填 */
@@ -96,19 +96,19 @@ export interface FieldOptions<T = Record<string, string>> {
 	/** 字段必填失败时的消息 */
 	requiredFail?: string
 	/** 字段类型配置选项 */
-	type?: TypeOptions
+	type?: CheckTypeOptions
 	/** 字段长度配置选项 */
-	length?: LengthOptions
+	length?: CheckLengthOptions
 	/** 字段范围配置选项 */
-	range?: RangeOptions
+	range?: CheckRangeOptions
 	/** 自定义校验规则配置选项 */
-	customs?: Custom[]
+	customs?: CheckCustom[]
 }
 
-export type FieldsOptions<T> = FieldOptions<T>[]
+export type CheckFieldsOptions<T> = CheckFieldOptions<T>[]
 
 // 扩展选项
-export interface Options {
+export interface CheckOptions {
 	/**
 	 * 校验前处理函数
 	 * @param data 校验目标数据
@@ -119,10 +119,10 @@ export interface Options {
 	 * @param result
 	 * @returns
 	 */
-	beforeGetData?: (result: Result) => any
+	beforeGetData?: (result: CheckResult) => any
 }
 
-export type FiledConf = {
+export type CheckFiledConf = {
 	/** 规则是否生效 */
 	use: boolean
 	/** 校验成功消息 */
@@ -130,7 +130,7 @@ export type FiledConf = {
 	/** 校验失败消息 */
 	fail: string
 	/** 钩子函数: 校验前处理函数 */
-	transform?: (data: any, fieldOptions: DeepReadonly<FieldOptions>) => any
+	transform?: (data: any, fieldOptions: ReadonlyDeep<CheckFieldOptions>) => any
 	/** 钩子函数: 自定义校验函数, 用于控制/拓展系统校验函数, 返回 true 则通过, 返回 false 则失败 */
 	verify?: (
 		/** 字段数据 */
@@ -138,7 +138,7 @@ export type FiledConf = {
 		/** 系统校验函数, 调用该函数不会影响系统数据 */
 		checkFn: () => boolean,
 		/** 校验上下文 */
-		ctx: DeepReadonly<HookOptionsVerifyCtx>
+		ctx: ReadonlyDeep<CheckHookOptionsVerifyCtx>
 	) =>
 		| boolean
 		| {
@@ -148,11 +148,11 @@ export type FiledConf = {
 				message: string
 		  }
 }
-export type FieldConf = string
+export type CheckFieldConf = string
 
-export type RequiredConf = boolean
+export type CheckRequiredConf = boolean
 
-export type TypeExpect =
+export type CheckTypeExpect =
 	| 'any'
 	| 'number'
 	| 'effectiveNumber'
@@ -169,18 +169,18 @@ export type TypeExpect =
 	| 'bigint'
 	| 'function'
 
-export type CheckTypeMap = {
-	[k in TypeExpect]: (...args: any) => boolean
+export type CheckVerifyTypeMap = {
+	[k in CheckTypeExpect]: (...args: any) => boolean
 }
 
-export type TypeConf = FiledConf & {
+export type CheckTypeConf = CheckFiledConf & {
 	/** 期待值 */
-	expect: TypeExpect[]
+	expect: CheckTypeExpect[]
 	/** 校验函数列表 */
 	checkFn: ((...args: any) => boolean)[]
 }
 
-export type LengthConf = FiledConf & {
+export type CheckLengthConf = CheckFiledConf & {
 	/** 期待值 */
 	expect: {
 		/** 最小值 */
@@ -190,7 +190,7 @@ export type LengthConf = FiledConf & {
 	}
 }
 
-export type RangeConf = FiledConf & {
+export type CheckRangeConf = CheckFiledConf & {
 	/** 期待值 */
 	expect: {
 		/** 最小值 */
@@ -200,24 +200,24 @@ export type RangeConf = FiledConf & {
 	}
 }
 
-export type FieldConfs = {
+export type CheckFieldConfs = {
 	/** 字段配置 */
-	field: FieldConf
+	field: CheckFieldConf
 	/** 字段是否必填 */
-	required: RequiredConf
+	required: CheckRequiredConf
 	/** 字段必填失败时的消息 */
 	requiredFail: string
 	/** 字段类型配置 */
-	type: TypeConf
+	type: CheckTypeConf
 	/** 字段长度配置 */
-	length: LengthConf
+	length: CheckLengthConf
 	/** 字段范围配置 */
-	range: RangeConf
+	range: CheckRangeConf
 	/** 自定义校验规则配置 */
-	customs: Custom[]
+	customs: CheckCustom[]
 }
 
-export type ConfFiledList = ['type', 'length', 'range']
+export type CheckConfFiledList = ['type', 'length', 'range']
 
 export type FieldResult = {
 	/** 校验结果 */
@@ -226,18 +226,18 @@ export type FieldResult = {
 	message: string
 }
 
-export type ListItemCustom = FieldResult & {
+export type CheckListItemCustom = FieldResult & {
 	/** 自定义校验规则名称 */
 	name: string
 }
 
-export type ListItem = {
+export type CheckListItem = {
 	/** 字段对应的数据 */
 	data: any
 	/** 字段校验结果 */
 	result: boolean
 	/** 校验的字段 */
-	field: FieldConf
+	field: CheckFieldConf
 	/** 字段是否必填 */
 	required: boolean
 	/** 字段必填失败时的消息 */
@@ -249,20 +249,20 @@ export type ListItem = {
 	/** 字段范围校验结果信息 */
 	range: FieldResult
 	/** 自定义校验结果信息 */
-	customResult: ListItemCustom[]
+	customResult: CheckListItemCustom[]
 }
 
-export type MessageMap = {
+export type CheckMessageMap = {
 	[k: string]: string[]
 }
 
-export interface Result {
+export interface CheckResult {
 	/**
 	 * 获取校验后的数据
 	 * - 该数据会经 options.beforeGetData() 处理
 	 * - @param handle 前置处理函数
 	 */
-	getData: <T = any>(handle?: (info: Result) => any) => T
+	getData: <T = any>(handle?: (info: CheckResult) => any) => T
 	/** 校验结果 */
 	result: boolean
 	/** 成功的校验字段信息 */
@@ -270,9 +270,9 @@ export interface Result {
 		/** 成功的字段数 */
 		count: number
 		/** 成功字段信息列表 */
-		list: ListItem[]
+		list: CheckListItem[]
 		/** 成功字段消息集合 */
-		msgMap: MessageMap
+		msgMap: CheckMessageMap
 		/** 成功字段消息列表 */
 		msgList: string[]
 	}
@@ -281,14 +281,14 @@ export interface Result {
 		/** 失败的字段数 */
 		count: number
 		/** 失败字段信息列表 */
-		list: ListItem[]
+		list: CheckListItem[]
 		/** 失败字段消息集合 */
-		msgMap: MessageMap
+		msgMap: CheckMessageMap
 		/** 失败字段消息列表 */
 		msgList: string[]
 	}
 	/** 所有校验的字段信息 */
-	verifyList: ListItem[]
+	verifyList: CheckListItem[]
 	/** 解析后的字段配置 */
-	fieldConfs: DeepReadonly<FieldConfs[]>
+	fieldConfs: ReadonlyDeep<CheckFieldConfs[]>
 }

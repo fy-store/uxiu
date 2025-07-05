@@ -1,6 +1,6 @@
-export type AnyKeyObj = Record<string, boolean>
+export type HasInvalidAnyKeyObj = Record<string, boolean>
 
-export interface VerifyConfig {
+export interface HasInvalidVerifyConfig {
 	/** undefined 默认为 true */
 	undefined?: boolean
 	/** null 默认为 true */

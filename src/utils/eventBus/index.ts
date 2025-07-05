@@ -1,12 +1,12 @@
 import type {
-	State,
-	EventMapOption,
-	Options,
-	Callback,
-	CallbackOptions,
-	OnOptions,
-	CallbackInfo,
-	EventMap
+	EventBusState,
+	EventBusEventMapOption,
+	EventBusOptions,
+	EventBusCallback,
+	EventBusCallbackOptions,
+	EventBusOnOptions,
+	EventBusCallbackInfo,
+	EventBusEventMap
 } from './types/index.js'
 import { isObj } from '../isObj/index.js'
 import { isString } from '../isString/index.js'
@@ -14,18 +14,19 @@ import { isSymbol } from '../isSymbol/index.js'
 import { isFunction } from '../isFunction/index.js'
 import { isArray } from '../isArray/index.js'
 import { isUndefined } from '../isUndefined/index.js'
+export * from './types/index.js'
 
 /**
  * 事件总线
  */
-export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E>>> {
+export class EventBus<S extends EventBusState, E extends EventBusEventMapOption<S, EventBus<S, E>>> {
 	#state: S
-	#eventMap = Object.create(null) as EventMap<S, EventBus<S, E>>
+	#eventMap = Object.create(null) as EventBusEventMap<S, EventBus<S, E>>
 	/**
 	 * 事件总线
 	 * @param options 配置选项
 	 */
-	constructor(options?: Options<S, E>) {
+	constructor(options?: EventBusOptions<S, E>) {
 		type Self = EventBus<S, E>
 		const { state = {}, eventMap = {}, ctx } = options ?? {}
 		if (!isObj(state)) {
@@ -38,9 +39,9 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 		this.#state = state as S
 		const eventMapKeys = Reflect.ownKeys(eventMap)
 		eventMapKeys.forEach((key) => {
-			const eventOption: EventMapOption<S, Self> = eventMap[key]
-			let callbackInfoList: CallbackInfo<S, Self>[]
-			if (isFunction<Callback<S, Self>>(eventOption)) {
+			const eventOption: EventBusEventMapOption<S, Self> = eventMap[key]
+			let callbackInfoList: EventBusCallbackInfo<S, Self>[]
+			if (isFunction<EventBusCallback<S, Self>>(eventOption)) {
 				callbackInfoList = [
 					{
 						once: false,
@@ -50,13 +51,13 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 				]
 			} else if (isArray(eventOption)) {
 				callbackInfoList = eventOption.map((it, i) => {
-					if (isFunction<Callback<S, Self>>(it)) {
+					if (isFunction<EventBusCallback<S, Self>>(it)) {
 						return {
 							once: false,
 							fn: it,
 							sign: Symbol()
 						}
-					} else if (isObj<CallbackOptions<S, Self>>(it)) {
+					} else if (isObj<EventBusCallbackOptions<S, Self>>(it)) {
 						if (!(isSymbol(it.sign) || isUndefined(it.sign))) {
 							throw new TypeError(
 								`options.eventMap${String(key)}[${i}].sign must be a symbol or undefined`
@@ -112,9 +113,9 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 
 	#on(
 		eventName: string | symbol,
-		callback: Callback<S, EventBus<S, E>>,
+		callback: EventBusCallback<S, EventBus<S, E>>,
 		once: boolean,
-		options: OnOptions = {}
+		options: EventBusOnOptions = {}
 	): symbol {
 		if (!(isString(eventName) || isSymbol(eventName))) {
 			throw new TypeError('eventName must be a string or symbol')
@@ -152,15 +153,15 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 	 * @param callback 事件回调
 	 * @param options 配置选项
 	 */
-	on(eventName: keyof E, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
+	on(eventName: keyof E, callback: EventBusCallback<S, EventBus<S, E>>, options?: EventBusOnOptions): symbol
 	/**
 	 * 注册一个事件
 	 * @param eventName 事件名称
 	 * @param callback 事件回调
 	 * @param options 配置选项
 	 */
-	on(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
-	on(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol {
+	on(eventName: string | symbol, callback: EventBusCallback<S, EventBus<S, E>>, options?: EventBusOnOptions): symbol
+	on(eventName: string | symbol, callback: EventBusCallback<S, EventBus<S, E>>, options?: EventBusOnOptions): symbol {
 		return this.#on(eventName, callback, false, options)
 	}
 
@@ -170,15 +171,15 @@ export class EventBus<S extends State, E extends EventMapOption<S, EventBus<S, E
 	 * @param callback 事件回调
 	 * @param options 配置选项
 	 */
-	once(eventName: keyof E, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
+	once(eventName: keyof E, callback: EventBusCallback<S, EventBus<S, E>>, options?: EventBusOnOptions): symbol
 	/**
 	 * 注册一个一次性事件
 	 * @param eventName 事件名称
 	 * @param callback 事件回调
 	 * @param options 配置选项
 	 */
-	once(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol
-	once(eventName: string | symbol, callback: Callback<S, EventBus<S, E>>, options?: OnOptions): symbol {
+	once(eventName: string | symbol, callback: EventBusCallback<S, EventBus<S, E>>, options?: EventBusOnOptions): symbol
+	once(eventName: string | symbol, callback: EventBusCallback<S, EventBus<S, E>>, options?: EventBusOnOptions): symbol {
 		return this.#on(eventName, callback, true, options)
 	}
 
