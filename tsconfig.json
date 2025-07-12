@@ -19,7 +19,7 @@
 	"include": [
 		"src/**/*",
 		"tests/**/*",
-		"./rollup.config.ts"
+		"./tsdown.config.ts"
 	],
 	"lib": [
 		"esnext",
