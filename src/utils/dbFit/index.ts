@@ -7,10 +7,7 @@ export * from './types/index.js'
 /**
  * 数据库模型适配器
  */
-export class DbFit<
-	T extends DbFitOptions = DbFitOptions,
-	Result = Awaited<ReturnType<T['query']>>
-> extends Event<DbFitEventType> {
+export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<ReturnType<T['query']>>> {
 	#isExec = false
 	#tasks = []
 	#execIndex: number
@@ -47,12 +44,18 @@ export class DbFit<
 		return this.#isEnd
 	}
 
+	#event: Event<DbFitEventType>
+
+	get $event() {
+		return this.#event
+	}
+
 	/**
 	 * 数据库模型适配器
 	 * @param options 配置选项
 	 */
 	constructor(options: T) {
-		super({ events: options.events })
+		this.#event = new Event<DbFitEventType>({ events: options.events })
 		if (!isObject(options)) {
 			throw new TypeError('options must be an object')
 		}
@@ -126,8 +129,8 @@ export class DbFit<
 		}
 		try {
 			this.#execIndex = 0
-			if (this.has('hook:beforeExec')) {
-				await this.emitLineUp('hook:beforeExec', this)
+			if (this.#event.has('hook:beforeExec')) {
+				await this.#event.emitLineUp('hook:beforeExec', this)
 			}
 			for (const task of this.#tasks) {
 				if (this.$isEnd) {
@@ -137,31 +140,31 @@ export class DbFit<
 				if (typeof task === 'function') {
 					await task.call(this, this)
 				} else {
-					if (this.has('hook:beforeQuery')) {
-						await this.emitLineUp('hook:beforeQuery', this)
+					if (this.#event.has('hook:beforeQuery')) {
+						await this.#event.emitLineUp('hook:beforeQuery', this)
 					}
 					const result = await this.#query(...task)
 					this.$result = result
-					if (this.has('hook:afterQuery')) {
-						this.emit('hook:afterQuery', this)
+					if (this.#event.has('hook:afterQuery')) {
+						this.#event.emit('hook:afterQuery', this)
 					}
 				}
 				this.#execIndex++
 			}
-			if (this.has('hook:afterExec')) {
-				await this.emitLineUp('hook:afterExec', this)
+			if (this.#event.has('hook:afterExec')) {
+				await this.#event.emitLineUp('hook:afterExec', this)
 			}
 		} catch (error) {
-			if (this.has('hook:execError')) {
-				await this.emitLineUp('hook:execError', this, error)
+			if (this.#event.has('hook:execError')) {
+				await this.#event.emitLineUp('hook:execError', this, error)
 			} else {
 				throw error
 			}
 		} finally {
 			this.#isExec = true
 			this.#isEnd = true
-			if (this.has('hook:end')) {
-				await this.emitLineUp('hook:end', this)
+			if (this.#event.has('hook:end')) {
+				await this.#event.emitLineUp('hook:end', this)
 			}
 		}
 
@@ -174,8 +177,8 @@ export class DbFit<
 			throw new Error('example only execute once')
 		}
 		this.#isEnd = true
-		if (this.has('hook:callEnd')) {
-			await this.emitLineUp('hook:callEnd', this)
+		if (this.#event.has('hook:callEnd')) {
+			await this.#event.emitLineUp('hook:callEnd', this)
 		}
 		return this
 	}
