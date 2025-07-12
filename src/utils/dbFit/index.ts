@@ -7,14 +7,14 @@ export * from './types/index.js'
 /**
  * 数据库模型适配器
  */
-export class DbFit<T extends DbFitOptions = DbFitOptions> extends Event<DbFitEventType> {
+export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<ReturnType<T['query']>>> extends Event<DbFitEventType> {
 	#isExec = false
 	#tasks = []
-	#execIndex: number = null
+	#execIndex: number
 	#query: T['query']
 	#isEnd = false
 	/** 查询结果, 每个任务都将覆盖此结果 */
-	$result: Awaited<ReturnType<T['query']>>
+	$result: Result
 
 	/** 任务队列 */
 	get $tasks() {
@@ -64,12 +64,16 @@ export class DbFit<T extends DbFitOptions = DbFitOptions> extends Event<DbFitEve
 	/**
 	 * 执行查询
 	 */
-	$query(...args: Parameters<T['query']>) {
+	$query<R = Awaited<ReturnType<T['query']>>>(
+		...args: Parameters<T['query']>
+	): Omit<DbFit<T, R>, '$result'> & {
+		$result: R
+	} {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
 		}
 		this.#tasks.push(args)
-		return this
+		return this as any
 	}
 
 	/**
@@ -112,7 +116,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions> extends Event<DbFitEve
 	 * 执行任务
 	 * @returns 最后一个任务的执行结果
 	 */
-	async $exec<R = Awaited<ReturnType<T['query']>>>(): Promise<R> {
+	async $exec<R = Result>(): Promise<R> {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
 		}
@@ -157,7 +161,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions> extends Event<DbFitEve
 			}
 		}
 
-		return this.$result
+		return this.$result as unknown as R
 	}
 
 	/** 结束任务 */
