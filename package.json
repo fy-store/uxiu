@@ -1,11 +1,7 @@
 {
 	"name": "uxiu",
 	"type": "module",
-<<<<<<< HEAD
-	"version": "0.13.2",
-=======
 	"version": "0.13.3",
->>>>>>> e1e3bfa (feat: 0.13.3)
 	"description": "基于 koa 构建的 nodejs 服务基础库",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
