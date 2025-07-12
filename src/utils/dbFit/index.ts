@@ -69,8 +69,9 @@ export class DbFit<
 	 */
 	$query<R = Awaited<ReturnType<T['query']>>>(
 		...args: Parameters<T['query']>
-	): Omit<this, '$result'> & {
+	): Omit<this, '$result' | '$exec'> & {
 		$result: R
+		$exec(): Promise<R>
 	} {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
@@ -95,20 +96,20 @@ export class DbFit<
 	}
 
 	/**
-	 * 使用插件
-	 * @param plugin 插件, 可以是一个函数或 DbFit 的实例
+	 * 使用中间件
+	 * @param middleware 中间件, 可以是一个函数或 DbFit 的实例
 	 */
-	$use(plugin: ((this: this, self: this) => void) | DbFit<any, any>): this {
+	$use(middleware: ((this: this, self: this) => void) | DbFit): this {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
 		}
-		if (plugin instanceof DbFit) {
+		if (middleware instanceof DbFit) {
 			this.#tasks.push(() => {
-				plugin.$setQuery(this.#query)
-				return plugin.$exec()
+				middleware.$setQuery(this.#query)
+				return middleware.$exec()
 			})
-		} else if (typeof plugin === 'function') {
-			this.#tasks.push(plugin)
+		} else if (typeof middleware === 'function') {
+			this.#tasks.push(middleware)
 		} else {
 			throw new TypeError('plugin must be a function or an instance of DbFit')
 		}
@@ -119,7 +120,7 @@ export class DbFit<
 	 * 执行任务
 	 * @returns 最后一个任务的执行结果
 	 */
-	async $exec<R = Result>(): Promise<R> {
+	async $exec<R = any>(): Promise<R> {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
 		}
