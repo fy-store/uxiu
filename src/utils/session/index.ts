@@ -2,13 +2,12 @@ import type { SessionOptions } from './types/index.js'
 import type { ReadonlyDeep } from '../readonly/types/index.js'
 import { isArray, isObject, readonly } from '../index.js'
 import { Sessionclone, createSessionId, createStore } from './utils/index.js'
-export { createSessionId, Sessionclone }
 export * from './types/index.js'
 
 /**
  * 创建一个会话存储实例
  */
-export const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) => {
+const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) => {
 	if (!isObject(options)) {
 		throw new Error('options must be an object')
 	}
@@ -201,4 +200,10 @@ export const createSessionStore = <T extends object>(options: SessionOptions<T> 
 	}
 
 	return sessionStore
+}
+
+export const Session = {
+	createSessionStore,
+	createSessionId,
+	Sessionclone
 }
