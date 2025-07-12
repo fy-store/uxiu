@@ -7,7 +7,10 @@ export * from './types/index.js'
 /**
  * 数据库模型适配器
  */
-export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<ReturnType<T['query']>>> extends Event<DbFitEventType> {
+export class DbFit<
+	T extends DbFitOptions = DbFitOptions,
+	Result = Awaited<ReturnType<T['query']>>
+> extends Event<DbFitEventType> {
 	#isExec = false
 	#tasks = []
 	#execIndex: number
@@ -66,7 +69,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	 */
 	$query<R = Awaited<ReturnType<T['query']>>>(
 		...args: Parameters<T['query']>
-	): Omit<DbFit<T, R>, '$result'> & {
+	): Omit<this, '$result'> & {
 		$result: R
 	} {
 		if (this.$isExec) {
@@ -95,7 +98,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	 * 使用插件
 	 * @param plugin 插件, 可以是一个函数或 DbFit 的实例
 	 */
-	$use(plugin: ((this: this, self: this) => void) | DbFit) {
+	$use(plugin: ((this: this, self: this) => void) | DbFit<any, any>): this {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
 		}
