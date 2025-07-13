@@ -1,5 +1,5 @@
-import { DbFit } from '../../dist/index.js'
-// import { DbFit } from '@/index.js'
+// import { DbFit } from '../../dist/index.js'
+import { DbFit } from '@/index.js'
 
 class Admin extends DbFit {
 	constructor() {
@@ -17,14 +17,9 @@ class Admin extends DbFit {
 
 // 测试完整链式调用
 async function testChain() {
-	const a = new Admin().get()
-	a.$use<typeof a>(function () {
-		this.$result
-	})
-
 	const result = await new Admin()
 		.get()
-		.$use<ReturnType<Admin['get']>>(function (that) {
+		.$use<Admin['get']>(function (that) {
 			this.get()
 			this.$result
 			that.$result

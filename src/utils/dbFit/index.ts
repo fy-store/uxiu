@@ -46,6 +46,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 
 	#event: Event<DbFitEventType>
 
+	/** 事件实例 */
 	get $event() {
 		return this.#event
 	}
@@ -69,6 +70,8 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 
 	/**
 	 * 执行查询
+	 * - 泛型参数:
+	 * - `R` 可任意类型, 将作为 $result 和 $exec() 返回值类型, 默认为 `Awaited<ReturnType<T['query']>>` [可选]
 	 */
 	$query<R = Awaited<ReturnType<T['query']>>>(
 		...args: Parameters<T['query']>
@@ -101,10 +104,13 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	/**
 	 * 使用中间件
 	 * @param middleware 中间件, 可以是一个函数或 DbFit 的实例
+	 * - 泛型参数:
+	 * - `S` 应传递类上的方法类型, 例如 `Test['get']` 将作为 this 和 that 的类型, 建议传递已获取更好的类型上下文 [可选]
+	 * - `R` 可任意类型, 将作为 $result 和 $exec() 返回值类型, 默认为 `ReturnType<S>['$result']` [可选]
 	 */
-	$use<S extends { $result: any } = this, R = S['$result']>(
-		middleware: ((this: S, self: S) => void) | DbFit
-	): Omit<S, '$result' | '$exec'> & {
+	$use<S extends (...args: any[]) => any = () => this, R = ReturnType<S>['$result']>(
+		middleware: ((this: ReturnType<S>, self: ReturnType<S>) => void) | DbFit
+	): Omit<ReturnType<S>, '$result' | '$exec'> & {
 		$result: R
 		$exec(): Promise<R>
 	} {
@@ -127,6 +133,8 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	/**
 	 * 执行任务
 	 * @returns 最后一个任务的执行结果
+	 * - 泛型参数:
+	 * - `R` 可任意类型, 将作为 $exec() 返回值类型, 默认为 `any` , 如果上一个方法有提供上下文将自动覆盖 [可选]
 	 */
 	async $exec<R = any>(): Promise<R> {
 		if (this.$isExec) {
