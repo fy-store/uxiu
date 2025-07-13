@@ -17,22 +17,21 @@ class Admin extends DbFit {
 
 // 测试完整链式调用
 async function testChain() {
+	const a = new Admin().get()
+	a.$use<typeof a>(function () {
+		this.$result
+	})
+
 	const result = await new Admin()
 		.get()
-		.$use(function () {
+		.$use<ReturnType<Admin['get']>>(function (that) {
 			this.get()
-			this.$use(new Admin())
+			this.$result
+			that.$result
+			// this.$use(new Admin())
 		})
-		.get()
+		// .get()
 		.$exec()
-
-	console.log('Chain result:', result)
-	console.log('Chain result type:', typeof result)
-
-	const num: number = result
-	console.log('Chain type assertion successful:', num)
-
-	return result
 }
 
 testChain().catch(console.error)

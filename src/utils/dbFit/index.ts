@@ -102,7 +102,12 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	 * 使用中间件
 	 * @param middleware 中间件, 可以是一个函数或 DbFit 的实例
 	 */
-	$use(middleware: ((this: this, self: this) => void) | DbFit): this {
+	$use<S extends { $result: any } = this, R = S['$result']>(
+		middleware: ((this: S, self: S) => void) | DbFit
+	): Omit<S, '$result' | '$exec'> & {
+		$result: R
+		$exec(): Promise<R>
+	} {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
 		}
@@ -116,7 +121,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 		} else {
 			throw new TypeError('plugin must be a function or an instance of DbFit')
 		}
-		return this
+		return this as any
 	}
 
 	/**
