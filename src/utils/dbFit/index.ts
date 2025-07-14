@@ -76,7 +76,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 
 	async $run<R extends (...args: any[]) => any>(fn: R, ...args: Parameters<R>): Promise<ReturnType<R>> {
 		if (this.$isExec) {
-			throw new Error('example only execute once')
+			throw new Error('example only execute once, current example is ended')
 		}
 
 		const query = async (...args: any[]) => {
@@ -108,7 +108,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 		$exec(): Promise<R>
 	} {
 		if (this.$isExec) {
-			throw new Error('example only execute once')
+			throw new Error('example only execute once, current example is ended')
 		}
 
 		if (this.#isRuntime) {
@@ -124,7 +124,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	 */
 	$setQuery(query: T['query']) {
 		if (this.$isExec) {
-			throw new Error('example only execute once')
+			throw new Error('example only execute once, current example is ended')
 		}
 		if (typeof query !== 'function') {
 			throw new TypeError('query must be a function')
@@ -147,7 +147,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 		$exec(): Promise<R>
 	} {
 		if (this.$isExec) {
-			throw new Error('example only execute once')
+			throw new Error('example only execute once, current example is ended')
 		}
 		if (middleware instanceof DbFit) {
 			this.#tasks.push(() => {
@@ -170,7 +170,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	 */
 	async $exec<R = any>(): Promise<R> {
 		if (this.$isExec) {
-			throw new Error('example only execute once')
+			throw new Error('example only execute once, current example is ended')
 		}
 		try {
 			this.#execIndex = 0
@@ -221,7 +221,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	/** 结束任务 */
 	async $end() {
 		if (this.$isExec) {
-			throw new Error('example only execute once')
+			throw new Error('example only execute once, current example is ended')
 		}
 		this.#isEnd = true
 		if (this.#event.has('hook:callEnd')) {
