@@ -13,8 +13,14 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	#execIndex: number
 	#query: T['query']
 	#isEnd = false
+	#isRuntime = false
 	/** 查询结果, 每个任务都将覆盖此结果 */
 	$result: Result
+
+	/** 当前实例是否正在运行 exec */
+	get $isRuntime() {
+		return this.#isRuntime
+	}
 
 	/** 任务队列 */
 	get $tasks() {
@@ -68,6 +74,28 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 		}
 	}
 
+	async $run<R extends (...args: any[]) => any>(fn: R, ...args: Parameters<R>): Promise<ReturnType<R>> {
+		if (this.$isExec) {
+			throw new Error('example only execute once')
+		}
+
+		const query = async (...args: any[]) => {
+			return await this.#query(...args)
+		}
+
+		return await fn.call(
+			new Proxy(this, {
+				get(target, prop, receiver) {
+					if (prop === '$query') {
+						return query
+					}
+					return Reflect.get(target, prop, receiver)
+				}
+			}),
+			...args
+		)
+	}
+
 	/**
 	 * 执行查询
 	 * - 泛型参数:
@@ -81,6 +109,10 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	} {
 		if (this.$isExec) {
 			throw new Error('example only execute once')
+		}
+
+		if (this.#isRuntime) {
+			throw new Error('example is running, cannot add new query, please use $run()')
 		}
 		this.#tasks.push(args)
 		return this as any
@@ -142,6 +174,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 		}
 		try {
 			this.#execIndex = 0
+			this.#isRuntime = true
 			if (this.#event.has('hook:beforeExec')) {
 				await this.#event.emitLineUp('hook:beforeExec', this)
 			}
@@ -174,6 +207,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 				throw error
 			}
 		} finally {
+			this.#isRuntime = false
 			this.#isExec = true
 			this.#isEnd = true
 			if (this.#event.has('hook:end')) {

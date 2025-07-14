@@ -13,17 +13,22 @@ class Admin extends DbFit {
 	get() {
 		return this.$query<number>()
 	}
+
+	set(value?: 'a' | 'b') {
+		return this.$query<boolean>()
+	}
 }
 
 // 测试完整链式调用
 async function testChain() {
 	const result = await new Admin()
 		.get()
-		.$use<Admin['get']>(function (that) {
+		.$use<Admin['get']>(async function (that) {
 			this.get()
 			this.$result
 			that.$result
-			// this.$use(new Admin())
+			const res = await this.$run(this.set, 'a')
+			res.$result
 		})
 		// .get()
 		.$exec()
