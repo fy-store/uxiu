@@ -42,7 +42,7 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 	}
 
 	if (isDeepReadonly(target)) {
-		return target
+		return target as ReadonlyDeep<T>
 	}
 
 	if (isShallowReadonly(target)) {
@@ -92,7 +92,7 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 		sign: newOptions.sign,
 		tip: newOptions.tip
 	})
-	return proxy
+	return proxy as ReadonlyDeep<T>
 }
 
 /**

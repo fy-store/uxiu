@@ -5,14 +5,20 @@ export type ReadonlyOptions = {
 	tip?: 'none' | 'warn' | 'error'
 }
 
-export type ReadonlyDeep<T> = {
-	readonly [P in keyof T]: T[P] extends object ? ReadonlyDeep<T[P]> : T[P]
-}
+export type ReadonlyDeep<T> = T extends (infer U)[]
+	? ReadonlyDeep<U>[]
+	: T extends object
+	? { readonly [P in keyof T]: ReadonlyDeep<T[P]> }
+	: T
 
-export type ReadonlyUn<T> = {
-	-readonly [P in keyof T]: T[P] extends object ? ReadonlyUn<T[P]> : T[P]
-}
+export type ReadonlyUn<T> = T extends (infer U)[]
+	? ReadonlyUn<U>[]
+	: T extends object
+	? { -readonly [P in keyof T]: ReadonlyUn<T[P]> }
+	: T
 
-export type ReadonlyUnDeep<T> = {
-	-readonly [P in keyof T]: T[P] extends object ? ReadonlyUnDeep<T[P]> : T[P]
-}
+export type ReadonlyUnDeep<T> = T extends (infer U)[]
+	? ReadonlyUnDeep<U>[]
+	: T extends object
+	? { -readonly [P in keyof T]: ReadonlyUnDeep<T[P]> }
+	: T
