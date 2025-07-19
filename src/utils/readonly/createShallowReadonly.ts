@@ -1,5 +1,5 @@
 import { isReferenceValue } from '../isReferenceValue/index.js'
-import { proxyCollection, isReadonly, SYSTEM_SIGN, tipList } from './context.js'
+import { proxyCollection, isReadonly, DEFAULT_SIGN, tipList, READONLY_SIGN } from './context.js'
 import { type ReadonlyOptions } from './types/index.js'
 import tipMap from './tipMap.js'
 
@@ -27,12 +27,15 @@ export default <T extends Object>(target: T, options: ReadonlyOptions = {}): Rea
 		throw new TypeError(`'options.tip' must be one of 'error', 'warn', 'none', ${String(options.tip)}`)
 	}
 	const newOptions = {
-		sign: Object.hasOwn(options, 'sign') ? options.sign : SYSTEM_SIGN,
+		sign: Object.hasOwn(options, 'sign') ? options.sign : DEFAULT_SIGN,
 		tip
 	}
 
 	const proxy = new Proxy(target, {
 		get(target, p, receiver) {
+			if (p === READONLY_SIGN) {
+				return true
+			}
 			return Reflect.get(target, p, receiver)
 		},
 

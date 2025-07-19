@@ -1,6 +1,10 @@
+import { isObject } from '../isObject/index.js'
 import { ReadonlyUnDeep, type ReadonlyOptions } from './types/index.js'
 
-export const SYSTEM_SIGN = Symbol('systemSign')
+export const DEFAULT_SIGN = Symbol('default_sign')
+export const READONLY_SIGN = Symbol('readonly_sign')
+export const DEEP_READONLY_SIGN = Symbol('deep_readonly_sign')
+
 export const proxyCollection = new WeakMap<
 	any,
 	{
@@ -18,9 +22,14 @@ export const proxyCollection = new WeakMap<
  * @param target 判断目标
  */
 export const isShallowReadonly = (target: any) => {
-	const info = proxyCollection.get(target)
-	if (!info) return false
-	return proxyCollection.get(target)?.isShallowReadonly
+	if (isObject(target)) {
+		return false
+	}
+
+	if (target[READONLY_SIGN]) {
+		return true
+	}
+	return false
 }
 
 /**
@@ -30,9 +39,14 @@ export const isShallowReadonly = (target: any) => {
  * @param target 判断目标
  */
 export const isDeepReadonly = (target: any) => {
-	const info = proxyCollection.get(target)
-	if (!info) return false
-	return !proxyCollection.get(target)?.isShallowReadonly
+	if (isObject(target)) {
+		return false
+	}
+
+	if (target[DEEP_READONLY_SIGN]) {
+		return true
+	}
+	return false
 }
 
 /**
@@ -42,7 +56,14 @@ export const isDeepReadonly = (target: any) => {
  * @param target 判断目标
  */
 export const isReadonly = (target: any) => {
-	return !!proxyCollection.get(target)
+	if (isObject(target)) {
+		return false
+	}
+
+	if (target[READONLY_SIGN] || target[DEEP_READONLY_SIGN]) {
+		return true
+	}
+	return false
 }
 
 /**
@@ -56,7 +77,7 @@ export const toOrigin = <T extends object>(target: T, sign?: any): ReadonlyUnDee
 		throw new Error("'target' is not readonly")
 	}
 
-	if (sign === SYSTEM_SIGN) {
+	if (sign === DEFAULT_SIGN) {
 		return info.data
 	}
 

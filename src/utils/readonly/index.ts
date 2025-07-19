@@ -5,9 +5,11 @@ import {
 	isShallowReadonly,
 	isReadonly,
 	toOrigin,
-	SYSTEM_SIGN,
+	DEFAULT_SIGN,
 	tipList,
-	getTip
+	getTip,
+	DEEP_READONLY_SIGN,
+	READONLY_SIGN
 } from './context.js'
 import { isReferenceValue } from '../isReferenceValue/index.js'
 import { isFunction } from '../isFunction/index.js'
@@ -37,20 +39,24 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 	}
 
 	const newOptions = {
-		sign: Object.hasOwn(options, 'sign') ? options.sign : SYSTEM_SIGN,
+		sign: Object.hasOwn(options, 'sign') ? options.sign : DEFAULT_SIGN,
 		tip
 	}
 
-	if (isDeepReadonly(target)) {
+	if (target[DEEP_READONLY_SIGN]) {
 		return target as ReadonlyDeep<T>
 	}
 
-	if (isShallowReadonly(target)) {
-		target = toOrigin(target, SYSTEM_SIGN) as T
+	if (target[READONLY_SIGN]) {
+		target = toOrigin(target, DEFAULT_SIGN) as T
 	}
 
 	const proxy = new Proxy(target, {
 		get(target, p, receiver) {
+			if (p === DEEP_READONLY_SIGN) {
+				return true
+			}
+
 			const value = Reflect.get(target, p, receiver)
 
 			if (isFunction(value)) {
