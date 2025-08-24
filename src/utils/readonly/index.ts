@@ -51,6 +51,8 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 		target = toOrigin(target, DEFAULT_SIGN) as T
 	}
 
+	const weakMap = new WeakMap()
+
 	const proxy = new Proxy(target, {
 		get(target, p, receiver) {
 			if (p === DEEP_READONLY_SIGN) {
@@ -59,16 +61,18 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 
 			const value = Reflect.get(target, p, receiver)
 
-			if (isFunction(value)) {
-				if (p === 'constructor') {
+			if (isReferenceValue(value)) {
+				if (isFunction(value) && p === 'constructor') {
 					return value
 				}
 
-				return readonly(value, newOptions)
-			}
-
-			if (isReferenceValue(value)) {
-				return readonly(value, newOptions)
+				const data = weakMap.get(value as object)
+				if (data) {
+					return data
+				}
+				const readonlyData = readonly(value, newOptions)
+				weakMap.set(value as object, readonlyData)
+				return readonlyData
 			}
 
 			return value

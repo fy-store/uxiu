@@ -18,6 +18,7 @@ export * from './types/index.js'
 
 /**
  * 事件总线
+ * @deprecated 弃用, 请使用 @yishu/event 库代替
  */
 export class EventBus<S extends EventBusState, E extends EventBusEventMapOption<S, EventBus<S, E>>> {
 	#state: S
@@ -179,7 +180,11 @@ export class EventBus<S extends EventBusState, E extends EventBusEventMapOption<
 	 * @param options 配置选项
 	 */
 	once(eventName: string | symbol, callback: EventBusCallback<S, EventBus<S, E>>, options?: EventBusOnOptions): symbol
-	once(eventName: string | symbol, callback: EventBusCallback<S, EventBus<S, E>>, options?: EventBusOnOptions): symbol {
+	once(
+		eventName: string | symbol,
+		callback: EventBusCallback<S, EventBus<S, E>>,
+		options?: EventBusOnOptions
+	): symbol {
 		return this.#on(eventName, callback, true, options)
 	}
 

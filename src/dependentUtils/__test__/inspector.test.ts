@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { create, check } from '../inspector/index.js'
+import { inspector } from '../inspector/index.js'
 
 describe('inspector', () => {
 	it('create() and check()', () => {
-		const rules = create(
+		const rules = inspector.create(
 			[
 				{
 					methods: 'GET',
@@ -29,11 +29,11 @@ describe('inspector', () => {
 			{ base: '/api' }
 		)
 
-		expect(check(rules, 'GET', '/api/a')).toBe(true)
-		expect(check(rules, 'GET', '/api/b//info')).toBe(true)
-		expect(check(rules, 'GET', '/api/b/a/info')).toBe(true)
-		expect(check(rules, 'PUT', '/api/a')).toBe(true)
-		expect(check(rules, 'DELETE', '/api/d1')).toBe(true)
-		expect(check(rules, 'PATCH', '/api/e/1')).toBe(true)
+		expect(inspector.check(rules, 'GET', '/api/a')).toBe(true)
+		expect(inspector.check(rules, 'GET', '/api/b//info')).toBe(true)
+		expect(inspector.check(rules, 'GET', '/api/b/a/info')).toBe(true)
+		expect(inspector.check(rules, 'PUT', '/api/a')).toBe(true)
+		expect(inspector.check(rules, 'DELETE', '/api/d1')).toBe(true)
+		expect(inspector.check(rules, 'PATCH', '/api/e/1')).toBe(true)
 	})
 })

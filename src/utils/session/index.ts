@@ -202,7 +202,16 @@ const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) =
 	return sessionStore
 }
 
+/**
+ * @deprecated 请使用 session 模块
+ */
 export const Session = {
+	createSessionStore,
+	createSessionId,
+	Sessionclone
+}
+
+export const session = {
 	createSessionStore,
 	createSessionId,
 	Sessionclone

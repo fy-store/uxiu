@@ -32,13 +32,13 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 		return this.#isExec
 	}
 
-	/** 设置当前实例是否已经执行状态 */
-	set $isExec(value: boolean) {
-		if (!this.#isExec) {
-			throw new Error('example $isExec is true, cannot set to false')
-		}
-		this.#isExec = !!value
-	}
+	// /** 设置当前实例是否已经执行状态 */
+	// set $isExec(value: boolean) {
+	// 	if (!this.#isExec) {
+	// 		throw new Error('example $isExec is true, cannot set to false')
+	// 	}
+	// 	this.#isExec = !!value
+	// }
 
 	/** 当前执行的任务下标 */
 	get $execIndex() {
@@ -74,6 +74,11 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 		}
 	}
 
+	/**
+	 * 立即执行一个任务且不插入队列
+	 * @param fn 任务方法
+	 * @param args 任务参数
+	 */
 	async $run<R extends (...args: any[]) => any>(fn: R, ...args: Parameters<R>): Promise<ReturnType<R>> {
 		if (this.$isExec) {
 			throw new Error('example only execute once, current example is ended')
@@ -134,10 +139,25 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	}
 
 	/**
+	 * 设置 $result
+	 * - 通过该方法设置, 避免类型警告
+	 */
+	$setResult<S extends any, R = S>(
+		value: S
+	): Omit<this, '$result' | '$exec'> & {
+		$result: R
+		$exec(): Promise<R>
+	} {
+		this.$result = value as any
+		return this as any
+	}
+
+	/**
 	 * 使用中间件
+	 * - 注意: 中间件将被插入到任务队列末端(使用 push())
 	 * @param middleware 中间件, 可以是一个函数或 DbFit 的实例
 	 * - 泛型参数:
-	 * - `S` 应传递类上的方法类型, 例如 `Test['get']` 将作为 this 和 that 的类型, 建议传递已获取更好的类型上下文 [可选]
+	 * - `S` 应传递类上的方法类型, 例如 `Test['get']` 将作为 this 和 self 的类型, 建议传递已获取更好的类型上下文 [可选]
 	 * - `R` 可任意类型, 将作为 $result 和 $exec() 返回值类型, 默认为 `ReturnType<S>['$result']` [可选]
 	 */
 	$use<S extends (...args: any[]) => any = () => this, R = ReturnType<S>['$result']>(

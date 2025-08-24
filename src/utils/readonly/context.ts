@@ -56,7 +56,7 @@ export const isDeepReadonly = (target: any) => {
  * @param target 判断目标
  */
 export const isReadonly = (target: any) => {
-	if (isObject(target)) {
+	if (!isObject(target)) {
 		return false
 	}
 

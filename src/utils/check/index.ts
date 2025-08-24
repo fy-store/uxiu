@@ -13,8 +13,12 @@ export * from './types/index.js'
  * @param fieldsOptions 字段配置
  * @param options 其他配置
  * @returns 检查器
+ * @deprecated 不符合人体工程学, 请使用 zod 等库代替
  */
-export const createCheck = <T = Record<string, string>>(fieldsOptions: CheckFieldsOptions<T>, options: CheckOptions = {}) => {
+export const createCheck = <T = Record<string, string>>(
+	fieldsOptions: CheckFieldsOptions<T>,
+	options: CheckOptions = {}
+) => {
 	if (!isArray(fieldsOptions)) {
 		throw new TypeError("'options.fieldsOptions' must be an array")
 	}

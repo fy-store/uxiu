@@ -36,24 +36,25 @@ export async function createApp(config: CreateAppConfig = {}) {
 		await config.beforeMount(readonlyCtx)
 	}
 
-	const { mountPortErrorTip = true, port = ctx.port } = config
-	server.on('error', (error: any) => {
-		// 判断端口是否被占用
-		if (error?.code === 'EADDRINUSE' && mountPortErrorTip) {
-			console.error(`\x1b[31m${port} 端口已被占用 !\x1B[0m`)
-		}
-		if (config.onMountError) {
-			config.onMountError(error)
-		} else {
-			throw error
-		}
-	})
+	return new Promise<CreateAppMountedCtx>((resolve, reject) => {
+		const { mountPortErrorTip = true, port = ctx.port } = config
+		server.on('error', (error: any) => {
+			// 判断端口是否被占用
+			if (error?.code === 'EADDRINUSE' && mountPortErrorTip) {
+				console.error(`\x1b[31m${port} 端口已被占用 !\x1B[0m`)
+			}
+			if (config.onMountError) {
+				config.onMountError(error)
+			} else {
+				reject(error)
+			}
+		})
 
-	server.listen(port, async () => {
-		if (config.mounted) {
-			await config.mounted(readonlyCtx)
-		}
+		server.listen(port, async () => {
+			if (config.mounted) {
+				await config.mounted(readonlyCtx)
+				resolve(readonlyCtx)
+			}
+		})
 	})
-
-	return readonlyCtx
 }

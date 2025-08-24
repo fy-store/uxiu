@@ -30,7 +30,7 @@ describe('readonly.shallowReadonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly.shallowReadonly(origin)
+		const target = readonly.shallowReadonly(origin, { tip: 'none' })
 		// @ts-expect-error
 		target.a = 2
 		expect(target.a).toBe(1)
@@ -43,7 +43,7 @@ describe('readonly.shallowReadonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly.shallowReadonly(origin)
+		const target = readonly.shallowReadonly(origin, { tip: 'none' })
 		target.c.c1 = 4
 		expect(target.c.c1).toBe(4)
 	})
@@ -55,7 +55,7 @@ describe('readonly.shallowReadonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly.shallowReadonly(origin)
+		const target = readonly.shallowReadonly(origin, { tip: 'none' })
 		expect(cloneDeep(target)).toEqual(origin)
 	})
 
@@ -66,7 +66,7 @@ describe('readonly.shallowReadonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly.shallowReadonly(origin)
+		const target = readonly.shallowReadonly(origin, { tip: 'none' })
 		// @ts-expect-error
 		delete target.c
 		expect(target).toEqual({
@@ -83,7 +83,7 @@ describe('readonly.shallowReadonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly.shallowReadonly(origin)
+		const target = readonly.shallowReadonly(origin, { tip: 'none' })
 		delete target.c.c1
 		expect(target).toEqual({
 			a: 1,
@@ -99,7 +99,7 @@ describe('readonly.shallowReadonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly.shallowReadonly(origin)
+		const target = readonly.shallowReadonly(origin, { tip: 'none' })
 		Object.defineProperty(target, 'a', { value: 4 })
 		expect(target).toEqual({
 			a: 1,
@@ -109,13 +109,16 @@ describe('readonly.shallowReadonly()', () => {
 	})
 
 	test('已经是 readonly.shallowReadonly', () => {
-		const origin = readonly.shallowReadonly({
-			a: 1,
-			b: 2,
-			c: { c1: 3 }
-		})
+		const origin = readonly.shallowReadonly(
+			{
+				a: 1,
+				b: 2,
+				c: { c1: 3 }
+			},
+			{ tip: 'none' }
+		)
 
-		const target = readonly.shallowReadonly(origin)
+		const target = readonly.shallowReadonly(origin, { tip: 'none' })
 		expect(target).toBe(origin)
 	})
 
@@ -129,7 +132,7 @@ describe('readonly.shallowReadonly()', () => {
 	})
 
 	test('对象解构', () => {
-		const origin = readonly.shallowReadonly({ a: 1, b: { b: 2 } })
+		const origin = readonly.shallowReadonly({ a: 1, b: { b: 2 } }, { tip: 'none' })
 		const {
 			a,
 			b: { b },
@@ -142,7 +145,7 @@ describe('readonly.shallowReadonly()', () => {
 	})
 
 	test('toOrigin()', () => {
-		const origin = readonly.shallowReadonly({ a: 1, b: { b: 2 } }, { sign: 'test' })
+		const origin = readonly.shallowReadonly({ a: 1, b: { b: 2 } }, { sign: 'test', tip: 'none' })
 		expect(() => {
 			readonly.toOrigin(origin)
 		}).toThrowError()
@@ -185,7 +188,7 @@ describe('readonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly(origin)
+		const target = readonly(origin, { tip: 'none' })
 		// @ts-ignore
 		target.c.c1 = 2
 		expect(target.c.c1).toBe(3)
@@ -197,7 +200,7 @@ describe('readonly()', () => {
 			c: { [c1]: 3 }
 		}
 
-		const target = readonly(origin)
+		const target = readonly(origin, { tip: 'none' })
 		// @ts-ignore
 		target.c[c1] = 2
 		expect(target.c[c1]).toBe(3)
@@ -208,7 +211,7 @@ describe('readonly()', () => {
 			f() {}
 		}
 
-		const target = readonly(origin)
+		const target = readonly(origin, { tip: 'none' })
 		// @ts-ignore
 		target.f.a = 2
 		// @ts-ignore
@@ -222,7 +225,7 @@ describe('readonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly(origin)
+		const target = readonly(origin, { tip: 'none' })
 		expect(cloneDeep(target)).toEqual(origin)
 	})
 
@@ -231,7 +234,7 @@ describe('readonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly(origin)
+		const target = readonly(origin, { tip: 'none' })
 		// @ts-ignore
 		delete target.c.c1
 		expect(target).toEqual({
@@ -244,7 +247,7 @@ describe('readonly()', () => {
 			c: { c1: 3 }
 		}
 
-		const target = readonly(origin)
+		const target = readonly(origin, { tip: 'none' })
 		Object.defineProperty(target.c, 'c1', { value: 4 })
 		expect(target).toEqual({
 			c: { c1: 3 }
@@ -256,23 +259,26 @@ describe('readonly()', () => {
 			c: { c1: 3 }
 		})
 
-		const target = readonly(origin)
+		const target = readonly(origin, { tip: 'none' })
 		// @ts-ignore
 		delete target.c.c1
 		expect(target).toEqual({ c: { c1: 3 } })
 	})
 
 	test('已经是 readonly()', () => {
-		const origin = readonly({
-			c: { c1: 3 }
-		})
+		const origin = readonly(
+			{
+				c: { c1: 3 }
+			},
+			{ tip: 'none' }
+		)
 
-		const target = readonly(origin)
+		const target = readonly(origin, { tip: 'none' })
 		expect(target).toBe(origin)
 	})
 
 	test('数组解构', () => {
-		const origin = readonly([1, [2]])
+		const origin = readonly([1, [2]], { tip: 'none' })
 		// @ts-ignore
 		const [a, [b], c] = origin
 		expect(a).toBe(1)
@@ -281,7 +287,7 @@ describe('readonly()', () => {
 	})
 
 	test('对象解构', () => {
-		const origin = readonly({ a: 1, b: { b: 2 } })
+		const origin = readonly({ a: 1, b: { b: 2 } }, { tip: 'none' })
 		const {
 			a,
 			b: { b },
@@ -304,5 +310,18 @@ describe('readonly()', () => {
 	test('getTip()', () => {
 		const origin = readonly({ a: 1, b: { b: 2 } }, { tip: 'error' })
 		expect(readonly.getTip(origin)).toBe('error')
+	})
+
+	test('array includes()', () => {
+		const origin = readonly([{}, {}], { tip: 'none' })
+		const first = origin[0]
+		expect(origin.includes(first)).toBe(true)
+	})
+
+	test('array readonly item includes()', () => {
+		const a = readonly([readonly({})])
+		const b = readonly([])
+		const origin = readonly([a, b], { tip: 'none' })
+		expect(origin[0].includes(origin[0][0])).toBe(true)
 	})
 })
