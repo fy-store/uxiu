@@ -79,7 +79,7 @@ export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<Retur
 	 * @param fn 任务方法
 	 * @param args 任务参数
 	 */
-	async $run<R extends (...args: any[]) => any>(fn: R, ...args: Parameters<R>): Promise<ReturnType<R>> {
+	async $run<R extends (...args: any[]) => any>(fn: R, ...args: Parameters<R>): Promise<ReturnType<R>['$result']> {
 		if (this.$isExec) {
 			throw new Error('example only execute once, current example is ended')
 		}
