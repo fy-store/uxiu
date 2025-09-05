@@ -4,8 +4,11 @@ import { readonly } from '../readonly/index.js'
 import Event from '@yishu/event'
 export * from './types/index.js'
 
+export * from './dbFit2.js'
+
 /**
  * 数据库模型适配器
+ * @deprecated 请改用 DbFit2
  */
 export class DbFit<T extends DbFitOptions = DbFitOptions, Result = Awaited<ReturnType<T['query']>>> {
 	#isExec = false
