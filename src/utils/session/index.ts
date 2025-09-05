@@ -96,13 +96,12 @@ const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) =
 		 * @returns 只读的新的会话数据
 		 */
 		async patch<T1 extends object = T>(id: string, value: T1): Promise<T1> {
-			try {
-				const data = await sessionStore.get(id)
-				const newData = { ...data, ...Sessionclone(value) }
-				return (await sessionStore.set(id, newData)) as T1
-			} catch (error) {
+			let data = await sessionStore.get(id)
+			if (!data) {
 				throw new Error(`id -> '${String(id)}' is not exist`)
 			}
+			const newData = { ...data, ...Sessionclone(value) }
+			return (await sessionStore.set(id, newData)) as T1
 		},
 
 		/**
@@ -147,7 +146,7 @@ const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) =
 		 * @returns 一个只读的会话数据列表
 		 */
 		async all<T1 extends object = T>(): Promise<ReadonlyDeep<T1[]>> {
-			const data = []
+			const data: any[] = []
 			await sessionStore.each((id, value) => {
 				data.push([id, value])
 			})
@@ -159,7 +158,7 @@ const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) =
 		 * @returns 一个只读的会话key列表
 		 */
 		async keys(): Promise<ReadonlyDeep<string[]>> {
-			const data = []
+			const data: any[] = []
 			await sessionStore.each((id) => {
 				data.push(id)
 			})
@@ -171,7 +170,7 @@ const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) =
 		 * @returns 一个只读的会话内容列表
 		 */
 		async values<T1 extends object = T>(): Promise<ReadonlyDeep<T1[]>> {
-			const data = []
+			const data: any[] = []
 			await sessionStore.each((_id, value) => {
 				data.push(value)
 			})
@@ -183,7 +182,7 @@ const createSessionStore = <T extends object>(options: SessionOptions<T> = {}) =
 		 * @returns 被清空的会话数据列表
 		 */
 		async clear<T1 extends object = T>(): Promise<ReadonlyDeep<T1[]>> {
-			const data = []
+			const data: any[] = []
 			await sessionStore.each(async (id, value) => {
 				data.push([id, value])
 				await sessionStore.del(id)
