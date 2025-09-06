@@ -172,14 +172,14 @@ export class DbFit2<O extends DbFit2Options = DbFit2Options, E extends Record<st
 
 		if (this._bus.has('hook:destroy')) {
 			await this._bus.emitWait('hook:destroy', this, {
-				emitType: 'callDestroy',
+				emitType: 'callSubmit',
 				args
 			})
 		}
 
 		if (this._bus.has('destroy')) {
 			this._bus.emit('destroy', this, {
-				emitType: 'callDestroy',
+				emitType: 'callSubmit',
 				args
 			})
 		}
