@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { DbFit2 } from './dbFit2.js'
+import type { DbFit2Options } from './types/index.js'
 
 describe('dbFit2', () => {
 	it('init', async () => {
@@ -162,5 +163,63 @@ describe('dbFit2', () => {
 		}).toThrow('test error')
 
 		expect(admin.isDestroyed).toBe(true)
+	})
+
+	it('borrow', async () => {
+		class Admin extends DbFit2<{
+			query: (sql: string, p: Record<string, any>) => Promise<any>
+		}> {
+			constructor(borrow?: DbFit2) {
+				super({
+					query(sql, p) {
+						return Promise.resolve({ name: 'admin' })
+					},
+					borrow
+				} as DbFit2Options)
+			}
+
+			get(id: number) {
+				return this.query<{ name: string }>('select * from admin where id = :id', { id })
+			}
+		}
+
+		class User extends DbFit2<{
+			query: (sql: string, p: Record<string, any>) => Promise<any>
+		}> {
+			constructor(borrow?: DbFit2) {
+				super({
+					query(sql, p) {
+						return Promise.resolve({ name: 'user' })
+					},
+					borrow
+				} as DbFit2Options)
+			}
+
+			get(id: number) {
+				return this.query<{ name: string }>('select * from user where id = :id', { id })
+			}
+		}
+
+		const admin = new Admin()
+		const user = new User(admin)
+
+		expect(admin.queryCount).toBe(0)
+		expect(user.queryCount).toBe(0)
+
+		const r1 = await admin.get(1)
+		expect(r1.name).toBe('admin')
+		expect(admin.queryCount).toBe(1)
+		expect(user.queryCount).toBe(1)
+		const r2 = await user.get(1)
+		expect(r2.name).toBe('admin')
+		expect(admin.queryCount).toBe(2)
+		expect(user.queryCount).toBe(2)
+		
+		expect(user.borrow).toBe(admin)
+		expect(user.bus).toBe(admin.bus)
+
+		await user.destroy()
+		expect(admin.isDestroyed).toBe(true)
+		expect(user.isDestroyed).toBe(true)
 	})
 })

@@ -6,9 +6,10 @@ import Bus from '@yishu/event'
  */
 export class DbFit2<O extends DbFit2Options = DbFit2Options, E extends Record<string, (...args: any[]) => any> = {}> {
 	private _bus: Bus<DbFitEvents<this>>
+	private _query: O['query']
 	private _queryCount = 0
 	private _isDestroyed = false
-	private _query: O['query']
+	private _borrow?: DbFit2
 
 	/** 事件总线 */
 	get bus(): Bus<DbFitEvents<this> & E> {
@@ -16,13 +17,24 @@ export class DbFit2<O extends DbFit2Options = DbFit2Options, E extends Record<st
 	}
 
 	/** query 调用次数, 初始化为 0 */
-	get queryCount() {
+	get queryCount(): number {
+		if (this._borrow) {
+			return this._borrow.queryCount
+		}
 		return this._queryCount
 	}
 
 	/** 实例是否已被销毁 */
-	get isDestroyed() {
+	get isDestroyed(): boolean {
+		if (this._borrow) {
+			return this._borrow.isDestroyed
+		}
 		return this._isDestroyed
+	}
+
+	/** 借用的实例 */
+	get borrow(): DbFit2 | undefined {
+		return this._borrow
 	}
 
 	/**
@@ -38,14 +50,27 @@ export class DbFit2<O extends DbFit2Options = DbFit2Options, E extends Record<st
 			throw new TypeError('DbFit options.query must be a function')
 		}
 
-		this._query = options.query
-		this._bus = new Bus()
+		if (options.borrow) {
+			if (!(options.borrow instanceof DbFit2)) {
+				throw new TypeError('DbFit options.borrow must be an instance of DbFit')
+			}
+			this._borrow = options.borrow
+			this._query = options.borrow.query.bind(options.borrow)
+			this._bus = options.borrow.bus
+		} else {
+			this._query = options.query
+			this._bus = new Bus()
+		}
 	}
 
 	/**
 	 * 执行查询
 	 */
 	async query<T = ReturnType<O['query']>>(...args: Parameters<O['query']>): Promise<T> {
+		if (this._borrow) {
+			return this._borrow.query(...args)
+		}
+
 		if (this._isDestroyed) {
 			throw new Error('DbFit instance has been destroyed')
 		}
@@ -102,9 +127,12 @@ export class DbFit2<O extends DbFit2Options = DbFit2Options, E extends Record<st
 	 * @param emitEvent 是否触发 destroy 事件, 默认为 true
 	 * @param args 传递给 destroy 事件的参数
 	 */
-	async destroy(emitEvent: boolean = true, ...args: any[]) {
+	async destroy(emitEvent: boolean = true, ...args: any[]): Promise<boolean> {
+		if (this._borrow) {
+			return this._borrow.destroy(emitEvent, ...args)
+		}
 		if (this._isDestroyed) {
-			return
+			return this._isDestroyed
 		}
 		this._isDestroyed = true
 
@@ -123,13 +151,19 @@ export class DbFit2<O extends DbFit2Options = DbFit2Options, E extends Record<st
 				})
 			}
 		}
+
+		return this._isDestroyed
 	}
 
 	/**
 	 * 提交查询
-	 * @param args 传递给 submit 事件的参数
+	 * @param args 传递给 destroy 和 hook:destroy 事件的参数
 	 */
-	async submit(...args: any[]) {
+	async submit(...args: any[]): Promise<void> {
+		if (this._borrow) {
+			return this._borrow.submit(...args)
+		}
+
 		if (this._isDestroyed) {
 			throw new Error('DbFit instance has been destroyed')
 		}

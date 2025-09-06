@@ -56,4 +56,9 @@ export type DbFitEvents<T extends DbFit2 = DbFit2> = {
 export interface DbFit2Options {
 	/** 查询实现 */
 	query: (...args: any[]) => any
+	/** 
+	 * 借用另一个实例
+	 * - 配置后, destroy()/submit()/query()/queryCount/isDestroyed/bus 方法和属性均指向该实例
+	 */
+	borrow?: DbFit2
 }
