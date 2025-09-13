@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@oxc-project/runtime':
+        specifier: ^0.87.0
+        version: 0.87.0
       '@yishu/event':
         specifier: ^1.0.1
         version: 1.0.1
@@ -378,6 +381,10 @@ packages:
 
   '@oxc-project/runtime@0.76.0':
     resolution: {integrity: sha512-17iezP/BukiovZZR7lp6fZZjNTOmodCWQKkI7sn2sOB1TiccRWzO2bpxnE94jhg8l+nBRMrwnM/cjFCr23winw==}
+    engines: {node: '>=6.9.0'}
+
+  '@oxc-project/runtime@0.87.0':
+    resolution: {integrity: sha512-ky2Hqi2q/uGX36UfY79zxMbUqiNIl1RyKKVJfFenG70lbn+/fcaKBVTbhmUwn8a2wPyv2gNtDQxuDytbKX9giQ==}
     engines: {node: '>=6.9.0'}
 
   '@oxc-project/types@0.76.0':
@@ -1376,6 +1383,8 @@ snapshots:
     optional: true
 
   '@oxc-project/runtime@0.76.0': {}
+
+  '@oxc-project/runtime@0.87.0': {}
 
   '@oxc-project/types@0.76.0': {}
 
