@@ -84,6 +84,7 @@ describe('readonly.shallowReadonly()', () => {
 		}
 
 		const target = readonly.shallowReadonly(origin, { tip: 'none' })
+		// @ts-ignore
 		delete target.c.c1
 		expect(target).toEqual({
 			a: 1,
@@ -323,5 +324,27 @@ describe('readonly()', () => {
 		const b = readonly([])
 		const origin = readonly([a, b], { tip: 'none' })
 		expect(origin[0].includes(origin[0][0])).toBe(true)
+	})
+
+	test('readonly date object to JSON', () => {
+		const origin = {
+			date: new Date()
+		}
+		const target = readonly(origin)
+		expect(() => {
+			JSON.stringify(target)
+		}).not.toThrowError()
+		expect(JSON.stringify(target)).toBe(JSON.stringify(origin))
+	})
+
+	test('readonly.shallowReadonly date object to JSON', () => {
+		const origin = {
+			date: new Date()
+		}
+		const target = readonly.shallowReadonly(origin)
+		expect(() => {
+			JSON.stringify(target)
+		}).not.toThrowError()
+		expect(JSON.stringify(target)).toBe(JSON.stringify(origin))
 	})
 })

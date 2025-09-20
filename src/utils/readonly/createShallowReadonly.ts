@@ -23,20 +23,25 @@ export default <T extends Object>(target: T, options: ReadonlyOptions = {}): Rea
 	}
 
 	const tip = Object.hasOwn(options, 'tip') ? options.tip : 'warn'
-	if (!tipList.includes(tip)) {
+	if (!tipList.includes(tip as Required<ReadonlyOptions>['tip'])) {
 		throw new TypeError(`'options.tip' must be one of 'error', 'warn', 'none', ${String(options.tip)}`)
 	}
 	const newOptions = {
 		sign: Object.hasOwn(options, 'sign') ? options.sign : DEFAULT_SIGN,
 		tip
-	}
+	} as Required<ReadonlyOptions>
 
 	const proxy = new Proxy(target, {
 		get(target, p, receiver) {
 			if (p === READONLY_SIGN) {
 				return true
 			}
-			return Reflect.get(target, p, receiver)
+			const value = Reflect.get(target, p, receiver)
+			// 修复 Date 在被代理后 JSON 序列化报错的问题
+			if (target instanceof Date && p === 'toJSON' && typeof value === 'function') {
+				return value.bind(target)
+			}
+			return value
 		},
 
 		set(target, p, newValue) {

@@ -34,20 +34,20 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 	}
 
 	const tip = Object.hasOwn(options, 'tip') ? options.tip : 'warn'
-	if (!tipList.includes(tip)) {
+	if (!tipList.includes(tip as Required<ReadonlyOptions>['tip'])) {
 		throw new TypeError(`'options.tip' must be one of 'error', 'warn', 'none', ${String(options.tip)}`)
 	}
 
 	const newOptions = {
 		sign: Object.hasOwn(options, 'sign') ? options.sign : DEFAULT_SIGN,
 		tip
-	}
+	} as Required<ReadonlyOptions>
 
-	if (target[DEEP_READONLY_SIGN]) {
+	if (target[DEEP_READONLY_SIGN as keyof T]) {
 		return target as ReadonlyDeep<T>
 	}
 
-	if (target[READONLY_SIGN]) {
+	if (target[READONLY_SIGN as keyof T]) {
 		target = toOrigin(target, DEFAULT_SIGN) as T
 	}
 
@@ -61,6 +61,11 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 
 			const value = Reflect.get(target, p, receiver)
 
+			// 修复被代理 Date 的 JSON 序列化
+			if (target instanceof Date && p === 'toJSON' && typeof value === 'function') {
+				return readonly(value.bind(target))
+			}
+
 			if (isReferenceValue(value)) {
 				if (isFunction(value) && p === 'constructor') {
 					return value
@@ -70,7 +75,7 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 				if (data) {
 					return data
 				}
-				const readonlyData = readonly(value, newOptions)
+				const readonlyData = readonly(value as T, newOptions)
 				weakMap.set(value as object, readonlyData)
 				return readonlyData
 			}

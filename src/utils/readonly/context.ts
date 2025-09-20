@@ -87,7 +87,7 @@ export const toOrigin = <T extends object>(target: T, sign?: any): ReadonlyUnDee
 	return info.data
 }
 
-export const tipList = ['error', 'warn', 'none']
+export const tipList = ['error', 'warn', 'none'] as const
 
 /**
  * 获取只读数据的错误提示等级
