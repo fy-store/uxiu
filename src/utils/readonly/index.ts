@@ -1,3 +1,4 @@
+import type { ReadonlyDeep, ReadonlyOptions, ReadonlyContext } from './types/index.js'
 import shallowReadonly from './createShallowReadonly.js'
 import {
 	proxyCollection,
@@ -8,23 +9,22 @@ import {
 	DEFAULT_SIGN,
 	tipList,
 	getTip,
-	DEEP_READONLY_SIGN,
-	READONLY_SIGN
+	CONTEXT_SIGN,
+	isApply
 } from './context.js'
 import { isReferenceValue } from '../isReferenceValue/index.js'
-import { isFunction } from '../isFunction/index.js'
-import type { ReadonlyDeep, ReadonlyOptions } from './types/index.js'
 import tipMap from './tipMap.js'
 export * from './types/index.js'
 
 /**
  * 将引用数据包装为一个深层只读引用
+ * - 该方法目前还不是一个稳定的 API, 请谨慎使用
  * - 如果目标已经是一个浅层只读则会重新解构包装成新的深层只读
  * - 如果目标已经是一个深度只读则直接返回目标
  * @param target 包装目标
  * @param options 配置选项
  */
-export const readonly = <T extends Object>(target: T, options: ReadonlyOptions = {}): ReadonlyDeep<T> => {
+export function readonly<T extends Object>(target: T, options: ReadonlyOptions = {}): ReadonlyDeep<T> {
 	if (!isReferenceValue(target)) {
 		throw new TypeError(`'target' must be an object, ${String(target)}`)
 	}
@@ -38,81 +38,120 @@ export const readonly = <T extends Object>(target: T, options: ReadonlyOptions =
 		throw new TypeError(`'options.tip' must be one of 'error', 'warn', 'none', ${String(options.tip)}`)
 	}
 
-	const newOptions = {
+	// 代理上下文信息
+	const context: ReadonlyContext = {
+		tip: tip!,
 		sign: Object.hasOwn(options, 'sign') ? options.sign : DEFAULT_SIGN,
-		tip
-	} as Required<ReadonlyOptions>
+		data: target,
+		isShallowReadonly: false,
+		proxyFunction: true
+	}
 
-	if (target[DEEP_READONLY_SIGN as keyof T]) {
+	// 如果已经是深度只读则直接返回
+	if (isDeepReadonly(target)) {
 		return target as ReadonlyDeep<T>
 	}
 
-	if (target[READONLY_SIGN as keyof T]) {
+	// 如果是浅层只读则先转回原始数据
+	if (isShallowReadonly(target)) {
 		target = toOrigin(target, DEFAULT_SIGN) as T
 	}
 
+	// 处理循环引用
 	const weakMap = new WeakMap()
-
-	const proxy = new Proxy(target, {
+	const proxy: T = new Proxy(target, {
 		get(target, p, receiver) {
-			if (p === DEEP_READONLY_SIGN) {
-				return true
+			// 获取代理上下文
+			if (p === CONTEXT_SIGN) {
+				return context
 			}
 
-			const value = Reflect.get(target, p, receiver)
-
-			// 修复被代理 Date 的 JSON 序列化
-			if (target instanceof Date && p === 'toJSON' && typeof value === 'function') {
-				return readonly(value.bind(target))
-			}
-
+			const value = Reflect.get(target, p, isReadonly(receiver) ? toOrigin(receiver, DEFAULT_SIGN) : receiver)
 			if (isReferenceValue(value)) {
-				if (isFunction(value) && p === 'constructor') {
+				if (p === '__proto__' || p === 'prototype') {
+					return value
+				} else if (typeof value === 'function' && p === 'constructor') {
 					return value
 				}
 
+				// 循环引用
 				const data = weakMap.get(value as object)
 				if (data) {
 					return data
 				}
-				const readonlyData = readonly(value as T, newOptions)
-				weakMap.set(value as object, readonlyData)
-				return readonlyData
+				// 非循环引用
+				const newReadonly = readonly(value as T, { sign: context.sign, tip: context.tip })
+				weakMap.set(value as object, newReadonly)
+				proxyCollection.set(newReadonly, {
+					data: value,
+					isShallowReadonly: false,
+					proxyFunction: true,
+					sign: context.sign,
+					tip: context.tip
+				})
+				return newReadonly
 			}
 
 			return value
 		},
 
 		set(target, p, newValue) {
-			tipMap[newOptions.tip](
+			if (options.setHandler) {
+				return options.setHandler(target, p, newValue, proxy, context)
+			}
+			tipMap[context.tip](
 				`'target' is readonly, can not set property '${String(p)}' to '${String(newValue)}'`,
 				target
 			)
 			return true
 		},
 
+		apply(target: any, thisArg, argArray) {
+			if (options.applyHandler) {
+				return options.applyHandler(target, thisArg, argArray, context)
+			} else if (isApply(thisArg, target)) {
+				return Array.isArray(thisArg)
+					? Reflect.apply(target, thisArg, argArray)
+					: Reflect.apply(target, proxyCollection.get(thisArg)?.data ?? thisArg, argArray)
+			} else {
+				tipMap[context.tip](`'target' is readonly, can not call method '${String(target.name)}'`, target)
+			}
+		},
+
+		construct(target: any, argArray, newTarget) {
+			return Reflect.construct(target, argArray, proxyCollection.get(newTarget)?.data ?? newTarget)
+			// return readonly(
+			// 	Reflect.construct(target as any, argArray, proxyCollection.get(newTarget)?.data ?? newTarget),
+			// 	{
+			// 		sign: context.sign,
+			// 		tip: context.tip
+			// 	}
+			// )
+		},
+
 		deleteProperty(target, p) {
-			tipMap[newOptions.tip](`'target' is readonly, can not delete property '${String(p)}'`, target)
+			tipMap[context.tip](`'target' is readonly, can not delete property '${String(p)}'`, target)
 			return true
 		},
 
 		defineProperty(target, property) {
-			tipMap[newOptions.tip](`'target' is readonly, can not define property '${String(property)}'`, target)
+			tipMap[context.tip](`'target' is readonly, can not define property '${String(property)}'`, target)
 			return true
 		}
 	})
 	proxyCollection.set(proxy, {
 		data: target,
 		isShallowReadonly: false,
-		sign: newOptions.sign,
-		tip: newOptions.tip
+		proxyFunction: true,
+		sign: context.sign,
+		tip: context.tip
 	})
 	return proxy as ReadonlyDeep<T>
 }
 
 /**
  * 将引用数据包装为一个浅层只读引用
- * - 如果目标已经是一个只读数据了则直接返回目标
+ * - 如果目标已经是一个只读数据了则直接返回目标(深度只读不会降级为浅层只读)
  * @param target 包装目标
  * @param options 配置选项
  */
@@ -151,7 +190,7 @@ readonly.toOrigin = toOrigin
 
 /**
  * 获取只读数据的错误提示等级
- * - 获取失败将抛出错误
+ * - 获取失败将返回 undefined
  * @param target 目标
  */
 readonly.getTip = getTip

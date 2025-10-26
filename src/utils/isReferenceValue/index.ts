@@ -8,7 +8,7 @@ import { isFunction } from '../isFunction/index.js'
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isReferenceValue = (data: any): boolean => {
+export function isReferenceValue<T = Record<string | symbol, any> | ((...args: any[]) => any)>(data: any): boolean {
 	return isObject(data) || isFunction(data)
 }
 
@@ -19,7 +19,7 @@ export const isReferenceValue = (data: any): boolean => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isReferenceValue.all = (...args: any[]) => {
+isReferenceValue.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isReferenceValue)
 }

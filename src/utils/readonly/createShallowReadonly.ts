@@ -1,15 +1,15 @@
+import type { ShallowReadonlyOptions, ReadonlyContext } from './types/index.js'
+import { proxyCollection, isReadonly, toOrigin, DEFAULT_SIGN, tipList, CONTEXT_SIGN, isApply } from './context.js'
 import { isReferenceValue } from '../isReferenceValue/index.js'
-import { proxyCollection, isReadonly, DEFAULT_SIGN, tipList, READONLY_SIGN } from './context.js'
-import { type ReadonlyOptions } from './types/index.js'
 import tipMap from './tipMap.js'
 
 /**
  * 将引用数据包装为一个浅层只读引用
- * - 如果目标已经是一个只读数据了则直接返回目标
+ * - 如果目标已经是一个只读数据了则直接返回目标(深度只读不会降级为浅层只读)
  * @param target 包装目标
  * @param options 配置选项
  */
-export default <T extends Object>(target: T, options: ReadonlyOptions = {}): Readonly<T> => {
+export default function <T extends Object>(target: T, options: ShallowReadonlyOptions = {}): Readonly<T> {
 	if (!isReferenceValue(target)) {
 		throw new TypeError(`'target' must be an object, ${String(target)}`)
 	}
@@ -18,56 +18,104 @@ export default <T extends Object>(target: T, options: ReadonlyOptions = {}): Rea
 		throw new TypeError(`'options' must be an object, ${String(options)}`)
 	}
 
-	if (isReadonly(target)) {
-		return target
-	}
-
 	const tip = Object.hasOwn(options, 'tip') ? options.tip : 'warn'
-	if (!tipList.includes(tip as Required<ReadonlyOptions>['tip'])) {
+	if (!tipList.includes(tip as Required<ShallowReadonlyOptions>['tip'])) {
 		throw new TypeError(`'options.tip' must be one of 'error', 'warn', 'none', ${String(options.tip)}`)
 	}
-	const newOptions = {
-		sign: Object.hasOwn(options, 'sign') ? options.sign : DEFAULT_SIGN,
-		tip
-	} as Required<ReadonlyOptions>
 
-	const proxy = new Proxy(target, {
+	// 代理上下文信息
+	const context: ReadonlyContext = {
+		tip: tip!,
+		sign: Object.hasOwn(options, 'sign') ? options.sign : DEFAULT_SIGN,
+		data: target,
+		isShallowReadonly: true,
+		proxyFunction: Object.hasOwn(options, 'proxyFunction') ? Boolean(options.proxyFunction) : true
+	}
+
+	// 如果已经是只读则直接返回
+	if (isReadonly(target)) {
+		return target as Readonly<T>
+	}
+
+	const proxy: T = new Proxy(target, {
 		get(target, p, receiver) {
-			if (p === READONLY_SIGN) {
-				return true
+			// 获取代理上下文
+			if (p === CONTEXT_SIGN) {
+				return context
 			}
-			const value = Reflect.get(target, p, receiver)
-			// 修复 Date 在被代理后 JSON 序列化报错的问题
-			if (target instanceof Date && p === 'toJSON' && typeof value === 'function') {
-				return value.bind(target)
+
+			const value = Reflect.get(target, p, isReadonly(receiver) ? toOrigin(receiver, DEFAULT_SIGN) : receiver)
+			if (isReferenceValue(value)) {
+				if (p === '__proto__' || p === 'prototype') {
+					return value
+				} else if (typeof value === 'function' && p === 'constructor') {
+					return value
+				} else if (typeof value === 'function' && context.proxyFunction) {
+					return new Proxy(value, {
+						apply(target: any, thisArg, argArray) {
+							if (options.applyHandler) {
+								return options.applyHandler(target, thisArg, argArray, context)
+							} else if (isApply(thisArg, target)) {
+								return Array.isArray(thisArg)
+									? Reflect.apply(target, thisArg, argArray)
+									: Reflect.apply(target, proxyCollection.get(thisArg)?.data ?? thisArg, argArray)
+							} else {
+								tipMap[context.tip](
+									`'target' is readonly, can not call method '${String(target.name)}'`,
+									target
+								)
+							}
+						}
+					})
+				}
 			}
+
 			return value
 		},
 
 		set(target, p, newValue) {
-			tipMap[newOptions.tip](
+			if (options.setHandler) {
+				return options.setHandler(target, p, newValue, proxy, context)
+			}
+			tipMap[context.tip](
 				`'target' is readonly, can not set property '${String(p)}' to '${String(newValue)}'`,
 				target
 			)
 			return true
 		},
 
+		apply(target: any, thisArg, argArray) {
+			if (options.applyHandler) {
+				return options.applyHandler(target, thisArg, argArray, context)
+			} else if (isApply(thisArg, target)) {
+				return Array.isArray(thisArg)
+					? Reflect.apply(target, thisArg, argArray)
+					: Reflect.apply(target, proxyCollection.get(thisArg)?.data ?? thisArg, argArray)
+			} else {
+				tipMap[context.tip](`'target' is readonly, can not call method '${String(target.name)}'`, target)
+			}
+		},
+
+		construct(target: any, argArray, newTarget) {
+			return Reflect.construct(target, argArray, proxyCollection.get(newTarget)?.data ?? newTarget)
+		},
+
 		deleteProperty(target, p) {
-			tipMap[newOptions.tip](`'target' is readonly, can not delete property '${String(p)}'`, target)
+			tipMap[context.tip](`'target' is readonly, can not delete property '${String(p)}'`, target)
 			return true
 		},
 
 		defineProperty(target, property) {
-			tipMap[newOptions.tip](`'target' is readonly, can not define property '${String(property)}'`, target)
+			tipMap[context.tip](`'target' is readonly, can not define property '${String(property)}'`, target)
 			return true
 		}
 	})
-
 	proxyCollection.set(proxy, {
-		isShallowReadonly: true,
 		data: target,
-		sign: newOptions.sign,
-		tip: newOptions.tip
+		isShallowReadonly: true,
+		proxyFunction: context.proxyFunction,
+		sign: context.sign,
+		tip: context.tip
 	})
-	return proxy
+	return proxy as Readonly<T>
 }

@@ -7,7 +7,7 @@ import { isReferenceValue } from '../isReferenceValue/index.js'
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isOriginValue = (data: any): boolean => {
+export function isOriginValue(data: any): boolean {
 	return !isReferenceValue(data)
 }
 
@@ -18,6 +18,6 @@ export const isOriginValue = (data: any): boolean => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isOriginValue.all = (...args: any[]) => {
+isOriginValue.all = function (...args: any[]): boolean {
 	return args.every(isOriginValue)
 }

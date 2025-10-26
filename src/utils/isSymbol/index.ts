@@ -4,7 +4,7 @@
  * @param data 需要判断的数据
  * @returns symbol
  */
-export const isSymbol = (data: any): data is symbol => {
+export function isSymbol(data: any): data is symbol {
 	return typeof data === 'symbol'
 }
 
@@ -14,7 +14,7 @@ export const isSymbol = (data: any): data is symbol => {
  * @param args 需要判断的数据
  * @returns symbol
  */
-isSymbol.all = (...args: any[]) => {
+isSymbol.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isSymbol)
 }

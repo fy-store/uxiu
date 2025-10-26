@@ -4,7 +4,7 @@
  * @param data 需要判断的数据
  * @returns bigint
  */
-export const isBigint = (data: any): data is bigint => {
+export function isBigint(data: any): data is bigint {
 	return typeof data === 'bigint'
 }
 
@@ -14,7 +14,7 @@ export const isBigint = (data: any): data is bigint => {
  * @param args 需要判断的数据
  * @returns bigint
  */
-isBigint.all = (...args: any[]) => {
+isBigint.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isBigint)
 }

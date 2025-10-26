@@ -4,8 +4,8 @@
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isUndefined = (data: any): data is undefined => {
-	return data === undefined
+export function isUndefined(data: any): data is undefined {
+	return data === void 0
 }
 
 /**
@@ -14,6 +14,6 @@ export const isUndefined = (data: any): data is undefined => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isUndefined.all = (...args: any[]) => {
+isUndefined.all = function (...args: any[]): boolean {
 	return args.every(isUndefined)
 }

@@ -1,6 +1,3 @@
-import type { IsObject } from './types/index.js'
-export * from './types/index.js'
-
 /**
  * 判断一个数据是否为对象, 包括数组但排除函数
  * - 若需要将数组排除在外应使用 isObj() 方法
@@ -10,7 +7,7 @@ export * from './types/index.js'
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isObject = <T = IsObject>(data: any): data is T => {
+export function isObject<T = Record<string | symbol, any>>(data: any): data is T {
 	return typeof data === 'object' && data !== null
 }
 
@@ -22,7 +19,7 @@ export const isObject = <T = IsObject>(data: any): data is T => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isObject.all = (...args: any[]) => {
+isObject.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isObject)
 }

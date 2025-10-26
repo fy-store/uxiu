@@ -8,7 +8,7 @@ import { isNumber } from '../isNumber/index.js'
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isEffectiveNumber = (data: any): data is number => {
+export function isEffectiveNumber(data: any): data is number {
 	if (!isNumber(data) || Number.isNaN(data) || data === Infinity || data === -Infinity) return false
 	return true
 }
@@ -21,7 +21,7 @@ export const isEffectiveNumber = (data: any): data is number => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isEffectiveNumber.all = (...args: any[]) => {
+isEffectiveNumber.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isEffectiveNumber)
 }

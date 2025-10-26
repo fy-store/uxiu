@@ -19,4 +19,8 @@ export interface EverydayTaskTimedTasksOptions {
 	 * 如果设置的时间执行点已经过去, 是否立即触发一遍任务, 默认为 false
 	 */
 	exceedImmediatelyExecute?: boolean
+	/**
+	 * 函数 this 指向, 默认为 undefined
+	 */
+	thisContext?: any
 }

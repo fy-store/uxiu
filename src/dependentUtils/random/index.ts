@@ -11,7 +11,7 @@ import { randomInt } from 'crypto'
  * @param min 最小值(包含最小值)
  * @param max 最大值(取不到最大值)
  */
-export const random = (min: number, max: number) => {
+export function random(min: number, max: number): number {
 	return randomInt(min, max)
 }
 
@@ -125,10 +125,17 @@ random.sign = readonly(sign, { sign: SIGN })
 /** a-z, A-Z, 数字, 符号列表 */
 random.all = readonly(all, { sign: SIGN })
 
-const randomStr = (
+/**
+ * 生成一个安全随机字符串
+ * @param length 生成的字符串长度
+ * @param strList 随机字符列表, 默认为 a-Z
+ * - 通过 random.(az | AZ | num | sign | all) 获取常用的字符列表
+ */
+random.randomStr = function (
 	length: number,
 	strList: string[] | Readonly<string[]> | ReadonlyDeep<string[]> = [...az, ...AZ]
-) => {
+): string {
+	// 保证生成超长字符串时的性能
 	const list = (() => {
 		try {
 			if (readonly.isReadonly(strList)) {
@@ -148,9 +155,19 @@ const randomStr = (
 }
 
 /**
- * 生成一个安全随机字符串
+ * 生成一个安全随机 a-z 字符串
  * @param length 生成的字符串长度
- * @param strList 随机字符列表, 默认为 a-Z
- * - 通过 random.(az | AZ | num | sign | all) 获取常用的字符列表
+ * @returns a-z 字符串
  */
-random.randomStr = randomStr
+random.random26az = function (length: number): string {
+	return random.randomStr(length, az)
+}
+
+/**
+ * 生成一个安全随机 A-Z 字符串
+ * @param length 生成的字符串长度
+ * @returns A-Z 字符串
+ */
+random.random26AZ = function (length: number): string {
+	return random.randomStr(length, AZ)
+}

@@ -1,7 +1,6 @@
 import http from 'http'
 import Koa from 'koa'
 import type { CreateAppMountedCtx, CreateAppConfig } from './types/index.js'
-import { readonly } from '@/utils/index.js'
 export * from './types/index.js'
 
 /**
@@ -13,27 +12,25 @@ export async function createApp(config: CreateAppConfig = {}) {
 	const ctx: CreateAppMountedCtx = {
 		env: process.env.NODE_ENV === 'development' ? 'development' : 'production',
 		port: config.port ?? 3323,
-		app: null,
-		server: null,
-		koaOptions: readonly.shallowReadonly({ keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset })
+		app: null as any,
+		server: null as any,
+		koaOptions: { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset }
 	}
 
-	const readonlyCtx = readonly.shallowReadonly(ctx, { tip: 'error' })
-
 	if (config.beforeInit) {
-		await config.beforeInit(readonlyCtx)
+		await config.beforeInit(ctx)
 	}
 
 	const app = new Koa({ ...ctx.koaOptions, env: ctx.env })
 	ctx.app = app
 	if (config.inited) {
-		await config.inited(readonlyCtx)
+		await config.inited(ctx)
 	}
 
 	const server = http.createServer(app.callback())
 	ctx.server = server
 	if (config.beforeMount) {
-		await config.beforeMount(readonlyCtx)
+		await config.beforeMount(ctx)
 	}
 
 	return new Promise<CreateAppMountedCtx>((resolve, reject) => {
@@ -52,8 +49,8 @@ export async function createApp(config: CreateAppConfig = {}) {
 
 		server.listen(port, async () => {
 			if (config.mounted) {
-				await config.mounted(readonlyCtx)
-				resolve(readonlyCtx)
+				await config.mounted(ctx)
+				resolve(ctx)
 			}
 		})
 	})

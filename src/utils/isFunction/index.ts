@@ -5,7 +5,7 @@
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isFunction = <T = Function>(data: any): data is T => {
+export function isFunction<T = Function>(data: any): data is T {
 	return typeof data === 'function'
 }
 
@@ -15,7 +15,7 @@ export const isFunction = <T = Function>(data: any): data is T => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isFunction.all = (...args: any[]) => {
+isFunction.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isFunction)
 }

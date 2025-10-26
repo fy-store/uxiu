@@ -4,7 +4,7 @@
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isString = (data: any): data is string => {
+export function isString(data: any): data is string {
 	return typeof data === 'string'
 }
 
@@ -14,7 +14,7 @@ export const isString = (data: any): data is string => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isString.all = (...args: any[]) => {
+isString.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isString)
 }

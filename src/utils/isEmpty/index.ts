@@ -7,7 +7,7 @@ import { isNull } from '../isNull/index.js'
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isEmpty = (data: any): data is boolean => {
+export function isEmpty(data: any): data is boolean {
 	return isUndefined(data) || isNull(data)
 }
 
@@ -18,7 +18,7 @@ export const isEmpty = (data: any): data is boolean => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isEmpty.all = (...args: any[]) => {
+isEmpty.all = function (...args: any[]): boolean {
 	if (args.length === 0) return true
 	return args.every(isEmpty)
 }

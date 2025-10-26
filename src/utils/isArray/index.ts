@@ -5,7 +5,7 @@
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isArray = <T = any>(data: any): data is Array<T> => {
+export function isArray<T = any>(data: any): data is Array<T> {
 	return Array.isArray(data)
 }
 
@@ -15,7 +15,7 @@ export const isArray = <T = any>(data: any): data is Array<T> => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isArray.all = (...args: any[]) => {
+isArray.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isArray)
 }

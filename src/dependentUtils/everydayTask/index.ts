@@ -9,15 +9,15 @@ export * from './types/index.js'
  * @param options 配置选项
  * @returns 一个函数, 调用该函数即可停止下一次任务
  */
-export const everydayTask = (callback: (clearTimer: () => void) => void, options?: EverydayTaskTimedTasksOptions) => {
+export function everydayTask(callback: (clearTimer: () => void) => void, options?: EverydayTaskTimedTasksOptions) {
 	let ctx = {
 		isNext: true,
-		timer: null as NodeJS.Timeout | number
+		timer: null as NodeJS.Timeout | number | null
 	}
 
 	const clearTimer = () => {
 		ctx.isNext = false
-		clearTimeout(ctx.timer)
+		clearTimeout(ctx.timer!)
 	}
 
 	const config = {
@@ -67,7 +67,7 @@ export const everydayTask = (callback: (clearTimer: () => void) => void, options
 			if (initial && config.exceedImmediatelyExecute) {
 				Promise.resolve().then(() => {
 					try {
-						callback(clearTimer)
+						callback.call(options?.thisContext, clearTimer)
 					} catch (error) {
 						console.error(error)
 					}
@@ -77,11 +77,11 @@ export const everydayTask = (callback: (clearTimer: () => void) => void, options
 			clearTime = clear.getTime()
 		}
 
-		clearTimeout(ctx.timer)
+		clearTimeout(ctx.timer!)
 		ctx.timer = setTimeout(() => {
 			Promise.resolve().then(() => {
 				try {
-					callback(clearTimer)
+					callback.call(options?.thisContext, clearTimer)
 				} catch (error) {
 					console.error(error)
 				}

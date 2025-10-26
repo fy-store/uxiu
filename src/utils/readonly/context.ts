@@ -1,19 +1,15 @@
-import { isObject } from '../isObject/index.js'
-import { ReadonlyUnDeep, type ReadonlyOptions } from './types/index.js'
+import { ReadonlyContext, ReadonlyUnDeep, type ReadonlyOptions } from './types/index.js'
 
 export const DEFAULT_SIGN = Symbol('default_sign')
-export const READONLY_SIGN = Symbol('readonly_sign')
-export const DEEP_READONLY_SIGN = Symbol('deep_readonly_sign')
+export const CONTEXT_SIGN = Symbol('readonly_context_sign')
 
-export const proxyCollection = new WeakMap<
-	any,
-	{
-		isShallowReadonly: boolean
-		data: any
-		sign: ReadonlyOptions['sign']
-		tip: ReadonlyOptions['tip']
-	}
->()
+/** 数据代理集合 */
+export const proxyCollection = new WeakMap<any, ReadonlyContext>()
+
+/** 获取代理上下文信息 */
+export function getContext<T = any>(target: any): ReadonlyContext<T> | undefined {
+	return target?.[CONTEXT_SIGN]
+}
 
 /**
  * 判断一个数据是否为浅层只读
@@ -21,15 +17,13 @@ export const proxyCollection = new WeakMap<
  * - 若只需判断是否为只读应使用 readonly.isReadonly()
  * @param target 判断目标
  */
-export const isShallowReadonly = (target: any) => {
-	if (isObject(target)) {
+export function isShallowReadonly(target: any): boolean {
+	const context = getContext(target)
+	if (!context) {
 		return false
 	}
 
-	if (target[READONLY_SIGN]) {
-		return true
-	}
-	return false
+	return context.isShallowReadonly
 }
 
 /**
@@ -38,15 +32,13 @@ export const isShallowReadonly = (target: any) => {
  * - 若只需判断是否为只读应使用 readonly.isReadonly()
  * @param target 判断目标
  */
-export const isDeepReadonly = (target: any) => {
-	if (isObject(target)) {
+export function isDeepReadonly(target: any): boolean {
+	const context = getContext(target)
+	if (!context) {
 		return false
 	}
 
-	if (target[DEEP_READONLY_SIGN]) {
-		return true
-	}
-	return false
+	return !context.isShallowReadonly
 }
 
 /**
@@ -55,15 +47,12 @@ export const isDeepReadonly = (target: any) => {
  * - 若需判断是否为深层只读应使用 readonly.isDeepReadonly()
  * @param target 判断目标
  */
-export const isReadonly = (target: any) => {
-	if (!isObject(target)) {
+export function isReadonly(target: any): boolean {
+	const context = getContext(target)
+	if (!context) {
 		return false
 	}
-
-	if (target[READONLY_SIGN] || target[DEEP_READONLY_SIGN]) {
-		return true
-	}
-	return false
+	return true
 }
 
 /**
@@ -71,33 +60,109 @@ export const isReadonly = (target: any) => {
  * - 转换失败将抛出错误
  * @param target 目标
  */
-export const toOrigin = <T extends object>(target: T, sign?: any): ReadonlyUnDeep<T> => {
-	const info = proxyCollection.get(target)
-	if (!info) {
+export function toOrigin<T extends object>(target: T, sign?: any): ReadonlyUnDeep<T> {
+	const context = getContext(target)
+	if (!context) {
 		throw new Error("'target' is not readonly")
 	}
 
 	if (sign === DEFAULT_SIGN) {
-		return info.data
+		return context.data
 	}
 
-	if (!Object.is(info.sign, sign)) {
+	if (!Object.is(context.sign, sign)) {
 		throw new Error("'sign' is not match")
 	}
-	return info.data
+	return context.data
 }
 
 export const tipList = ['error', 'warn', 'none'] as const
+export const arrayQueryVerifyFunctions = [
+	'includes',
+	'indexOf',
+	'lastIndexOf',
+	'find',
+	'findIndex',
+	'filter',
+	'some',
+	'every',
+	'flatMap'
+]
+
+export const arrayDisabled = ['push', 'pop', 'shift', 'unshift', 'splice']
+export const mapDisabled = ['set', 'delete', 'clear']
+export const setDisabled = ['add', 'delete', 'clear']
+export const weakMapDisabled = ['set', 'delete']
+export const weakSetDisabled = ['add', 'delete']
+export const dateDisabled = [
+	'setDate',
+	'setFullYear',
+	'setHours',
+	'setMilliseconds',
+	'setMinutes',
+	'setMonth',
+	'setSeconds',
+	'setTime',
+	'setUTCDate',
+	'setUTCFullYear',
+	'setUTCHours',
+	'setUTCMilliseconds',
+	'setUTCMinutes',
+	'setUTCMonth',
+	'setUTCSeconds',
+	'setYear'
+]
+export const arrayBufferDisabled = ['resize']
+// bufView = TypedArray + DataView
+export const bufViewDisabled = [
+	'setInt8',
+	'setUint8',
+	'setInt16',
+	'setUint16',
+	'setInt32',
+	'setUint32',
+	'setFloat32',
+	'setFloat64',
+	'set',
+	'copyWithin',
+	'fill',
+	'reverse',
+	'sort'
+]
+
+/**
+ * 判断此数据上的该函数是否可调用
+ * @param thisTarget 目标数据
+ * @param target 方法
+ */
+export function isApply(thisTarget: any, target: (...args: any[]) => any): boolean {
+	if (Array.isArray(thisTarget) && arrayDisabled.includes(target.name)) {
+		return false
+	} else if (thisTarget instanceof Map && mapDisabled.includes(target.name)) {
+		return false
+	} else if (thisTarget instanceof Set && setDisabled.includes(target.name)) {
+		return false
+	} else if (thisTarget instanceof Date && dateDisabled.includes(target.name)) {
+		return false
+	} else if (thisTarget instanceof WeakMap && weakMapDisabled.includes(target.name)) {
+		return false
+	} else if (thisTarget instanceof WeakSet && weakSetDisabled.includes(target.name)) {
+		return false
+	} else if (thisTarget instanceof ArrayBuffer && arrayBufferDisabled.includes(target.name)) {
+		return false
+	} else if (ArrayBuffer.isView(thisTarget) && bufViewDisabled.includes(target.name)) {
+		return false
+	}
+
+	return true
+}
 
 /**
  * 获取只读数据的错误提示等级
- * - 获取失败将抛出错误
+ * - 获取失败将返回 undefined
  * @param target 目标
  */
-export const getTip = (target: any): ReadonlyOptions['tip'] => {
-	const info = proxyCollection.get(target)
-	if (!info) {
-		throw new Error("'target' is not readonly")
-	}
-	return info.tip
+export function getTip(target: any): ReadonlyOptions['tip'] {
+	const context = getContext(target)
+	return context?.tip
 }

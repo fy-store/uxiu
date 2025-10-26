@@ -4,7 +4,7 @@
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isNull = (data: any): data is null => {
+export function isNull(data: any): data is null {
 	return data === null
 }
 
@@ -14,7 +14,7 @@ export const isNull = (data: any): data is null => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isNull.all = (...args: any[]) => {
+isNull.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isNull)
 }

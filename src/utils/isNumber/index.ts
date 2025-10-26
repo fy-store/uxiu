@@ -4,7 +4,7 @@
  * @param data 需要判断的数据
  * @returns boolean
  */
-export const isNumber = (data: any): data is number => {
+export function isNumber(data: any): data is number {
 	return typeof data === 'number'
 }
 
@@ -14,7 +14,7 @@ export const isNumber = (data: any): data is number => {
  * @param args 需要判断的数据
  * @returns boolean
  */
-isNumber.all = (...args: any[]) => {
+isNumber.all = function (...args: any[]): boolean {
 	if (args.length === 0) return false
 	return args.every(isNumber)
 }

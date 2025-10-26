@@ -161,17 +161,6 @@ function serializeToRules<T = any>(ruleSerializes: InspectorRuleSerialize<T>[]):
 	})
 }
 
-/**
- * @deprecated 请使用 inspector
- */
-export const Inspector = {
-	create,
-	check,
-	getConf,
-	rulesToSerialize,
-	serializeToRules
-}
-
 export const inspector = {
 	create,
 	check,
