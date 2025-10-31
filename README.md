@@ -1,37 +1,53 @@
 # 项目简介
 
-该项目是基于 koa 构建的后端基础应用
+该项目是为 koa 后端应用提供基础模块的工具包
 
-为 web 后端应用提供常用的方法和中间件
+## 快速开始
 
-## 构建
-
-为了方便构建, 特此提供了 cli 工具
+使用 cli 工具快速搭建项目骨架
 
 **全局安装**
 
+**pnpm**
+
 ```bash
 pnpm i -g uxiu-cli
-# or
+```
+
+**yarn**
+
+```bash
 yarn global add uxiu-cli
-#or
+```
+
+**npm**
+
+```bash
 npm i -g uxiu-cli
 ```
 
-**如果你不想要全局安装, 你可以使用以下命令临时运行 cli**
+**临时运行 cli**
+
+**pnpm**
 
 ```bash
 pnpx uxiu-cli
-# or
+```
+
+**yarn**
+
+```bash
 yarn dlx uxiu-cli
-#or
+```
+
+**npm**
+
+```bash
 npx uxiu-cli
 ```
 
-## 提醒
+## 待办
 
-当前项目仍在开发中, 测试覆盖率尚未完全
+✅ 单元测试
 
-⚪ 单元测试
-
-⚪ 使用文档
+🟦 使用文档

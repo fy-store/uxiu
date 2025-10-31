@@ -1,4 +1,4 @@
-export interface SessionStore<T = object> {
+export interface SessionStoreStore<T = object> {
 	/** 添加数据 */
 	add(id: string, value: T): Promise<T>
 	/** 通过 id 获取数据 */
@@ -13,9 +13,9 @@ export interface SessionStore<T = object> {
 	length(): Promise<number>
 }
 
-export interface SessionOptions<T = object> {
+export interface SessionStoreOptions<T = object> {
 	/** 存储实例, 如果未传递将默认使用内存存储 */
-	store?: SessionStore<T>
+	store?: SessionStoreStore<T>
 	/** 初始化需要载入的数据 */
 	load?: [string, T][]
 }

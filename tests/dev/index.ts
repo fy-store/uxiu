@@ -1,13 +1,9 @@
-import { readonly } from '@/index.js'
+import { readonly, createApp } from '@/index.js'
 
-const origin = {
-	a: 1,
-	increment() {
-		this.a++
-	}
-}
-
-const target = readonly.shallowReadonly(origin, { proxyFunction: false })
-
-target.increment()
-console.log(origin)
+const app = await createApp({
+	port: 3323,
+	mounted(ctx) {
+		// console.log(ctx)
+	},
+})
+console.log(app)

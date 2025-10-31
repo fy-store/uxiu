@@ -1,5 +1,5 @@
-import type { EverydayTaskTimedTasksOptions } from './types/index.js'
-export * from './types/index.js'
+import type { EverydayTaskTimedTasksOptions } from './types.js'
+export * from './types.js'
 
 /**
  * 每日定时任务

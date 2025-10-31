@@ -1,5 +1,5 @@
-import { readonly } from '@/utils/index.js'
-import type { ReadonlyDeep } from '@/utils/readonly/types/index.js'
+import type { ReadonlyDeep } from '../../utils/readonly/types/index.js'
+import { readonly } from '../../utils/readonly/index.js'
 import { randomInt } from 'crypto'
 
 /**
@@ -170,4 +170,22 @@ random.random26az = function (length: number): string {
  */
 random.random26AZ = function (length: number): string {
 	return random.randomStr(length, AZ)
+}
+
+/**
+ * 生成一个安全随机 0-9-a-z-A-Z 字符串
+ * @param length 生成的字符串长度
+ * @returns 0-9-a-z-A-Z 字符串
+ */
+random.random0toaZ = function (length: number): string {
+	return random.randomStr(length, [...az, ...AZ, ...num])
+}
+
+/**
+ * 生成一个安全随机 0-9-a-z 字符串
+ * @param length 生成的字符串长度
+ * @returns 0-9-a-z 字符串
+ */
+random.random0toaz = function (length: number): string {
+	return random.randomStr(length, [...az, ...num])
 }
