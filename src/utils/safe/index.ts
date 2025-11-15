@@ -1,4 +1,4 @@
-import { isReferenceValue } from 'uxiu/utils'
+import { isReferenceValue } from '../isReferenceValue/index.js'
 
 function isPromiseLike(v: unknown): v is Promise<unknown> {
 	return isReferenceValue(v) && typeof (v as any).then === 'function' && typeof (v as any).catch === 'function'
