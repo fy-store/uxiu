@@ -1,6 +1,6 @@
 import type { DbFit } from './index.js'
 
-export interface DestroyCtx {
+export interface DBFitDestroyCtx {
 	/** 触发类型 */
 	emitType: 'error' | 'callDestroy' | 'callSubmit'
 	/** 传递的参数 */
@@ -23,9 +23,9 @@ export type DbFitEvents<T extends DbFit = DbFit> = {
 	/** query 执行后, 如果 query 执行过程失败此钩子将不会触发 */
 	'hook:afterQuery'?: (self: T, ...args: any[]) => void
 	/** query 执行失败或调用 destroy 方法或调用 submit 方法, 当 ctx.emitType=error 请自行手动调用 destroy() */
-	destroy?: (self: T, ctx: DestroyCtx) => void
+	destroy?: (self: T, ctx: DBFitDestroyCtx) => void
 	/** query 执行失败或调用 destroy 方法或调用 submit 方法, 当 ctx.emitType=error 请自行手动调用 destroy() */
-	'hook:destroy'?: (self: T, ctx: DestroyCtx) => void
+	'hook:destroy'?: (self: T, ctx: DBFitDestroyCtx) => void
 }
 
 export interface DbFitOptions {
@@ -37,3 +37,5 @@ export interface DbFitOptions {
 	 */
 	borrow?: DbFit
 }
+
+export type DbFitMaybeFunction<T, C> = T | ((value: C) => T)

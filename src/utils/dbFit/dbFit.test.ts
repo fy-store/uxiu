@@ -165,7 +165,7 @@ describe('new DbFit()', () => {
 		expect(admin.isDestroyed).toBe(true)
 	})
 
-	it('使用 borrow 借用', async () => {
+	it('使用 borrow() 借用', async () => {
 		class Admin extends DbFit<{
 			query: (sql: string, p: Record<string, any>) => Promise<any>
 		}> {
@@ -221,5 +221,68 @@ describe('new DbFit()', () => {
 		await user.destroy()
 		expect(admin.isDestroyed).toBe(true)
 		expect(user.isDestroyed).toBe(true)
+	})
+
+	it('ifel()', () => {
+		const dbFit = new DbFit({ query() {} })
+		expect(dbFit.ifel(true, 'a', 'b')).toBe('a')
+		expect(dbFit.ifel(false, 'a', 'b')).toBe('b')
+		expect(dbFit.ifel(false, 'a')).toBe('')
+		expect(
+			dbFit.ifel(
+				true,
+				() => 'a',
+				() => 'b'
+			)
+		).toBe('a')
+		expect(
+			dbFit.ifel(
+				false,
+				() => 'a',
+				() => 'b'
+			)
+		).toBe('b')
+	})
+
+	it('ifVoid()', () => {
+		const dbFit = new DbFit({ query() {} })
+		expect(dbFit.ifVoid(undefined, 'a', 'b')).toBe('a')
+		expect(dbFit.ifVoid(null, 'a', 'b')).toBe('b')
+		expect(dbFit.ifVoid(null, 'a')).toBe('')
+		expect(
+			dbFit.ifVoid(
+				undefined,
+				() => 'a',
+				() => 'b'
+			)
+		).toBe('a')
+		expect(
+			dbFit.ifVoid(
+				null,
+				() => 'a',
+				() => 'b'
+			)
+		).toBe('b')
+	})
+
+	it('ifNotVoid()', () => {
+		const dbFit = new DbFit({ query() {} })
+		expect(dbFit.ifNotVoid(null, 'a', 'b')).toBe('a')
+		expect(dbFit.ifNotVoid(undefined, 'a', 'b')).toBe('b')
+		expect(dbFit.ifNotVoid(undefined, 'a')).toBe('')
+		expect(
+			dbFit.ifNotVoid(
+				null,
+				() => 'a',
+				() => 'b'
+			)
+		).toBe('a')
+		expect(
+			dbFit.ifNotVoid(
+				undefined,
+				() => 'a',
+				() => 'b'
+			)
+		).toBe('b')
 	})
 })

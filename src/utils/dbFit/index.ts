@@ -1,9 +1,9 @@
-import type { DbFitEvents, DbFitOptions } from './types.js'
+import type { DbFitEvents, DbFitOptions, DbFitMaybeFunction } from './types.js'
 import Bus from 'event-imt'
 export type * from './types.js'
 
 /**
- * 数据库适配器 v2
+ * 数据库适配器
  */
 export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<string, (...args: any[]) => any> = {}> {
 	private _bus: Bus<DbFitEvents<this>>
@@ -184,6 +184,60 @@ export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<strin
 				args
 			})
 		}
+	}
+
+	/**
+	 * 条件分支
+	 * @param condition 条件
+	 * @param truthy 当条件为真时返回, 若 `truthy` 参数为函数时, 会传入条件值作为参数, 并将结果返回
+	 * @param falsy 当条件为假时返回, 若 `falsy` 参数为函数时, 会传入条件值作为参数, 并将结果返回
+	 * @returns `truthy` 或 `falsy` 的结果
+	 */
+	ifel<T, F = '', C = any>(
+		condition: C,
+		truthy: DbFitMaybeFunction<T, C>,
+		falsy: DbFitMaybeFunction<F, C> = '' as const as F
+	): T | F {
+		if (Boolean(condition)) {
+			return typeof truthy === 'function' ? (truthy as (value: C) => T)(condition) : truthy
+		}
+		return typeof falsy === 'function' ? (falsy as (value: C) => F)(condition) : falsy
+	}
+
+	/**
+	 * 是否为 undefined 条件分支
+	 * @param condition 条件
+	 * @param whenVoid 当条件为 undefined 时返回, 若 `whenVoid` 参数为函数时, 会传入条件值作为参数, 并将结果返回
+	 * @param then 当条件不为 undefined 时返回, 若 `then` 参数为函数时, 会传入条件值作为参数, 并将结果返回
+	 * @returns `whenVoid` 或 `then` 的结果
+	 */
+	ifVoid<T, F = '', C = any>(
+		condition: C,
+		whenVoid: DbFitMaybeFunction<T, C>,
+		then: DbFitMaybeFunction<F, C> = '' as const as F
+	): T | F {
+		if (condition === void 0) {
+			return typeof whenVoid === 'function' ? (whenVoid as (value: C) => T)(condition) : whenVoid
+		}
+		return typeof then === 'function' ? (then as (value: C) => F)(condition) : then
+	}
+
+	/**
+	 * 是否不为 undefined 条件分支
+	 * @param condition 条件
+	 * @param whenNotVoid 当条件不为 undefined 时返回, 若 `whenNotVoid` 参数为函数时, 会传入条件值作为参数, 并将结果返回
+	 * @param then 当条件为 undefined 时返回, 若 `then` 参数为函数时, 会传入条件值作为参数, 并将结果返回
+	 * @returns `whenNotVoid` 或 `then` 的结果
+	 */
+	ifNotVoid<T, F = '', C = any>(
+		condition: C,
+		whenNotVoid: DbFitMaybeFunction<T, C>,
+		then: DbFitMaybeFunction<F, C> = '' as const as F
+	): T | F {
+		if (condition !== void 0) {
+			return typeof whenNotVoid === 'function' ? (whenNotVoid as (value: C) => T)(condition) : whenNotVoid
+		}
+		return typeof then === 'function' ? (then as (value: C) => F)(condition) : then
 	}
 
 	/**
