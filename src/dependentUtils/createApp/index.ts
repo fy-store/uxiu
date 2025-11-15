@@ -4,7 +4,6 @@ import crypto from 'node:crypto'
 import http from 'http'
 import Koa from 'koa'
 import { Bus } from 'event-imt'
-import { Logger } from '../logger/index.js'
 import { readonly } from '../../utils/index.js'
 export * from './types.js'
 
@@ -31,6 +30,7 @@ export async function createApp(config: CreateAppConfig = {}) {
 	}
 
 	if (ctx.loggerOptions) {
+		const Logger = (await import('../logger/index.js')).Logger
 		ctx.logger = new Logger(ctx.loggerOptions)
 	}
 
