@@ -6,7 +6,7 @@
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"exports": {
-		"./": "./dist/index.js",
+		".": "./dist/index.js",
 		"./dependentUtils": "./dist/dependentUtils.js",
 		"./utils": "./dist/utils.js",
 		"./package.json": "./package.json"
