@@ -4,6 +4,11 @@ import log4js from 'log4js'
 import path from 'node:path'
 export type * from './types.js'
 
+// 未正常退出时将未记录完的日志继续记录
+process.on('exit', () => {
+	log4js.shutdown()
+})
+let flag = false
 // 内部实现类，导出时通过带泛型的构造签名包装以获得类型推断
 class _Logger {
 	/** log4js 实例 */
@@ -17,6 +22,9 @@ class _Logger {
 	/** 调试日志模块 */
 	// @ts-ignore
 	debug: log4js.Logger
+	/** 控制台日志模块 */
+	// @ts-ignore
+	console: log4js.Logger
 
 	constructor(options: LoggerOptions) {
 		if (!isObject(options)) {
@@ -91,6 +99,9 @@ class _Logger {
 						'调用堆栈: %n%s%n' +
 						'日志信息: %m%n'
 				}
+			},
+			console: {
+				type: 'console'
 			}
 		}
 		const categories: log4js.Configuration['categories'] = {
@@ -110,6 +121,12 @@ class _Logger {
 				enableCallStack: true,
 				level: 'debug',
 				appenders: ['debug']
+			},
+
+			console: {
+				enableCallStack: true,
+				level: 'all',
+				appenders: ['console']
 			},
 
 			default: {
@@ -164,18 +181,15 @@ class _Logger {
 		})
 
 		for (const name of Object.keys(mergedCategories)) {
+			if (name === 'default') continue
 			// @ts-ignore
 			this[name] = this.logger.getLogger(name)
 		}
 
-		// 未正常退出时将未记录完的日志继续记录
-		process.on('exit', () => {
-			log4js.shutdown()
-		})
-
 		// 崩溃异常记录
-		if (options.collapseAutoRegister || options.collapseAutoRegister === void 0) {
+		if ((options.collapseAutoRegister || options.collapseAutoRegister === void 0) && !flag) {
 			process.on('uncaughtException', (err, origin) => {
+				console.error(err)
 				const span = '    '
 				this.collapse.error('进程崩溃', err, '\n')
 				this.collapse.error(
@@ -189,6 +203,7 @@ class _Logger {
 					process.exit(1)
 				})
 			})
+			flag = true
 		}
 	}
 }
