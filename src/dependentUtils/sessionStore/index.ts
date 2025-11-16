@@ -92,6 +92,23 @@ export class SessionStore {
 			},
 
 			/**
+			 * 自定义创建一个会话
+			 * @param id 会话id
+			 * @param value 会话内容
+			 * @returns 会话id
+			 */
+			async customCreate<T1 extends object = T>(id: string, value: T1): Promise<string> {
+				if (typeof id !== 'string' || id.trim() === '') {
+					throw new Error(`id -> '${String(id)}' must be a non empty string`)
+				}
+				if (!isObject(value)) {
+					throw new Error(`value -> '${String(value)}' must be a object`)
+				}
+				await store.add(id, self.sessionclone(value))
+				return id
+			},
+
+			/**
 			 * 对指定会话的数据进行操作
 			 * @param id 会话id
 			 * @param value 补丁数据
