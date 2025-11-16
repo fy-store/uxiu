@@ -8,6 +8,7 @@ describe('createApp()', () => {
 		let beforeMount = false
 		let mounted = false
 		const app = await createApp({
+			port: 3324,
 			beforeInit() {
 				beforeInit = true
 			},
@@ -30,7 +31,7 @@ describe('createApp()', () => {
 				}
 			})
 		})
-		expect(app.port).toBe(3323)
+		expect(app.port).toBe(3324)
 		expect(app.env).toBe('production')
 		expect(app.koaOptions.env).toBe('production')
 		expect(beforeInit).toBe(true)
