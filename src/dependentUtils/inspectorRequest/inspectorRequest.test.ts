@@ -69,4 +69,19 @@ describe('new InspectorRequest()', () => {
 		const deserialized = inspectorRequest.serializeToRules(serialized)
 		expect(deserialized).toEqual(rules)
 	})
+
+	it('使用 null 配置', () => {
+		const inspectorRequest = new InspectorRequest()
+		const rules = inspectorRequest.create<{ id: string }>([
+			{ methods: null, path: null, meta: { id: 'view' } },
+			{ methods: 'GET', path: '/admin', meta: { id: 'admin' } }
+		])
+
+		expect(rules.length).toBe(2)
+		expect(inspectorRequest.check(rules, null, null)).toBe(false)
+		expect(inspectorRequest.check(rules, 'GET', '/admin')).toBe(true)
+		const serialized = inspectorRequest.rulesToSerialize(rules)
+		const deserialized = inspectorRequest.serializeToRules(serialized)
+		expect(deserialized).toEqual(rules)
+	})
 })

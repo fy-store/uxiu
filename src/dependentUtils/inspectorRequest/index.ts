@@ -60,51 +60,67 @@ export class InspectorRequest {
 				throw new TypeError(`options.confs[${i}] must be an object`)
 			}
 
-			if (isString(conf.methods)) {
-				if (!(conf.methods === '*' || methods.includes(conf.methods))) {
-					throw new Error(`options.confs[${i}].methods must be one of ${methods.join(' | ')} or *`)
+			if (conf.methods === null && conf.path === null) {
+				const result: InspectorRule<T> = {
+					methods: null,
+					path: null,
+					regex: null
 				}
-			} else if (isArray(conf.methods)) {
-				conf.methods.forEach((method, j) => {
-					if (!methods.includes(method)) {
-						throw new Error(`options.confs[${i}].methods[${j}] must be one of ${methods.join(' | ')}`)
-					}
-				})
+
+				if (Object.hasOwn(conf, 'meta')) {
+					result.meta = conf.meta
+				}
+
+				return result
 			} else {
-				throw new TypeError(
-					`options.confs[${i}].methods must be one of ${methods.join(' | ')} or ${methods.join(' | ')}[] or *`
-				)
-			}
-
-			if (!isString(conf.path)) {
-				throw new TypeError(`options.confs[${i}].path must be an string`)
-			}
-
-			const checkPathReg = /^[a-zA-Z0-9-_\/*]+$/
-			if (!(checkPathReg.test(base) && checkPathReg.test(conf.path))) {
-				throw new Error(`options.confs[${i}].path must be a valid path, but got "${conf.path}"`)
-			}
-
-			const p = path.join(base, conf.path)
-
-			const result: InspectorRule<T> = {
-				methods: (function () {
-					if (conf.methods === '*') {
-						return [...methods]
+				if (isString(conf.methods)) {
+					if (!(conf.methods === '*' || methods.includes(conf.methods))) {
+						throw new Error(`options.confs[${i}].methods must be one of ${methods.join(' | ')} or *`)
 					}
-					if (isArray(conf.methods)) return conf.methods
-					return [conf.methods]
-				})(),
-				path: p,
-				regex: pathToRegexp(p.replaceAll('*', '{:_}'), { sensitive, trailing, end: true, delimiter: '/' })
-					.regexp
-			}
+				} else if (isArray(conf.methods)) {
+					conf.methods.forEach((method, j) => {
+						if (!methods.includes(method)) {
+							throw new Error(`options.confs[${i}].methods[${j}] must be one of ${methods.join(' | ')}`)
+						}
+					})
+				} else {
+					throw new TypeError(
+						`options.confs[${i}].methods must be one of ${methods.join(' | ')} or ${methods.join(
+							' | '
+						)}[] or * or "methods" and "path" both be null`
+					)
+				}
 
-			if (Object.hasOwn(conf, 'meta')) {
-				result.meta = conf.meta
-			}
+				if (!isString(conf.path)) {
+					throw new TypeError(
+						`options.confs[${i}].path must be an string or "methods" and "path" both be null`
+					)
+				}
 
-			return result
+				const checkPathReg = /^[a-zA-Z0-9-_\/*]+$/
+				if (!(checkPathReg.test(base) && checkPathReg.test(conf.path))) {
+					throw new Error(`options.confs[${i}].path must be a valid path, but got "${conf.path}"`)
+				}
+				const p = path.join(base, conf.path)
+				const result: InspectorRule<T> = {
+					methods: (function () {
+						if (conf.methods === '*') {
+							return [...methods]
+						}
+						if (isArray(conf.methods)) return conf.methods
+						return [conf.methods]
+					})(),
+					path: p,
+					regex: pathToRegexp(p.replaceAll('*', '{:_}'), { sensitive, trailing, end: true, delimiter: '/' })
+						.regexp
+				}
+
+				if (Object.hasOwn(conf, 'meta')) {
+					result.meta = conf.meta
+				}
+
+				return result
+			}
 		})
 	}
 
@@ -114,9 +130,12 @@ export class InspectorRequest {
 	 * @param method 方法
 	 * @param path 路径
 	 */
-	check<T = any>(rules: InspectorRule<T>[], method: InspectorMethod, path: string) {
+	check<T = any>(rules: InspectorRule<T>[], method: InspectorMethod | null, path: string | null) {
+		if (method === null || path === null) {
+			return false
+		}
 		return rules.some((rule) => {
-			return rule.methods.includes(method) && rule.regex.test(path)
+			return rule.methods?.includes(method) && rule.regex?.test(path)
 		})
 	}
 
@@ -127,7 +146,7 @@ export class InspectorRequest {
 	getConf<T = any>(rules: InspectorRule<T>[]): InspectorRuleConf<T>[] {
 		return rules.map((rule) => {
 			const result: InspectorRuleConf<T> = {
-				methods: [...rule.methods],
+				methods: rule.methods === null ? null : [...rule.methods],
 				path: rule.path
 			}
 			if (Object.hasOwn(rule, 'meta')) {
@@ -144,12 +163,15 @@ export class InspectorRequest {
 	rulesToSerialize<T = any>(rules: InspectorRule<T>[]): InspectorRuleSerialize<T>[] {
 		return rules.map((rule) => {
 			const result: InspectorRuleSerialize<T> = {
-				methods: [...rule.methods],
+				methods: rule.methods === null ? null : [...rule.methods],
 				path: rule.path,
-				regex: {
-					source: rule.regex.source,
-					flags: rule.regex.flags
-				}
+				regex:
+					rule.regex === null
+						? null
+						: {
+								source: rule.regex.source,
+								flags: rule.regex.flags
+						  }
 			}
 			if (Object.hasOwn(rule, 'meta')) {
 				result.meta = rule.meta
@@ -165,9 +187,9 @@ export class InspectorRequest {
 	serializeToRules<T = any>(ruleSerializes: InspectorRuleSerialize<T>[]): InspectorRule<T>[] {
 		return ruleSerializes.map((rule) => {
 			const result: InspectorRule<T> = {
-				methods: [...rule.methods],
+				methods: rule.methods === null ? null : [...rule.methods],
 				path: rule.path,
-				regex: new RegExp(rule.regex.source, rule.regex.flags)
+				regex: rule.regex === null ? null : new RegExp(rule.regex.source, rule.regex.flags)
 			}
 			if (Object.hasOwn(rule, 'meta')) {
 				result.meta = rule.meta
