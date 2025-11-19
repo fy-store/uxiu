@@ -1,7 +1,7 @@
 {
 	"name": "uxiu",
 	"type": "module",
-	"version": "0.20.0-alpha.8",
+	"version": "0.20.0-alpha.9",
 	"description": "为 koa 后端应用提供基础模块的工具包",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -53,10 +53,10 @@
 		"vitest": "^2.0.5"
 	},
 	"peerDependencies": {
-		"@koa/router": "^14.0.0",
-		"koa": "^2.15.3",
-		"log4js": "^6.9.1",
-		"path-to-regexp": "^8.2.0"
+		"@koa/router": "*",
+		"koa": "^3.x.x",
+		"log4js": "^6.x.x",
+		"path-to-regexp": "^8.x.x"
 	},
 	"dependencies": {
 		"@oxc-project/runtime": "^0.87.0",
