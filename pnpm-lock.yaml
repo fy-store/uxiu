@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       '@koa/router':
-        specifier: ^14.0.0
+        specifier: '*'
         version: 14.0.0
       '@oxc-project/runtime':
         specifier: ^0.87.0
@@ -18,13 +18,13 @@ importers:
         specifier: ^0.1.0
         version: 0.1.0
       koa:
-        specifier: ^2.15.3
+        specifier: ^3.x.x
         version: 3.1.1
       log4js:
-        specifier: ^6.9.1
+        specifier: ^6.x.x
         version: 6.9.1
       path-to-regexp:
-        specifier: ^8.2.0
+        specifier: ^8.x.x
         version: 8.2.0
     devDependencies:
       '@types/koa':
@@ -2505,7 +2505,7 @@ snapshots:
   vite-node@2.1.8(@types/node@20.17.10):
     dependencies:
       cac: 6.7.14
-      debug: 4.4.0
+      debug: 4.4.1
       es-module-lexer: 1.6.0
       pathe: 1.1.2
       vite: 5.4.11(@types/node@20.17.10)
