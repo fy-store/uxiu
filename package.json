@@ -1,7 +1,7 @@
 {
 	"name": "uxiu",
 	"type": "module",
-	"version": "0.20.0-alpha.9",
+	"version": "0.21.0-alpha.0",
 	"description": "为 koa 后端应用提供基础模块的工具包",
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -60,7 +60,7 @@
 	},
 	"dependencies": {
 		"@oxc-project/runtime": "^0.87.0",
-		"event-imt": "^0.1.0"
+		"event-imt": "0.2.0-alpha.1"
 	},
 	"volta": {
 		"node": "20.17.0"

@@ -5,7 +5,7 @@ import fs from 'node:fs'
 
 describe('new Logger()', () => {
 	it('写入日志', () => {
-		const logsPath = path.join(import.meta.dirname, '../../../logs')
+		const logsPath = path.join(import.meta.dirname, '../../../logs/test1')
 		if (fs.existsSync(logsPath)) {
 			fs.rmSync(logsPath, { recursive: true, force: true })
 		}
@@ -18,11 +18,15 @@ describe('new Logger()', () => {
 		expect(fs.existsSync(path.join(logsPath, 'app/app.log'))).toBe(true)
 		expect(fs.existsSync(path.join(logsPath, 'debug/debug.log'))).toBe(true)
 		expect(fs.existsSync(path.join(logsPath, 'collapse/collapse.log'))).toBe(true)
-		fs.rmSync(logsPath, { recursive: true, force: true })
+		setTimeout(() => {
+			if (fs.existsSync(logsPath)) {
+				fs.rmSync(logsPath, { recursive: true, force: true })
+			}
+		}, 300)
 	})
 
 	it('按 expandCategories 自动扩展属性并可用（含类型推断）', () => {
-		const logsPath = path.join(import.meta.dirname, '../../../logs')
+		const logsPath = path.join(import.meta.dirname, '../../../logs/test2')
 		if (fs.existsSync(logsPath)) {
 			fs.rmSync(logsPath, { recursive: true, force: true })
 		}
@@ -44,6 +48,10 @@ describe('new Logger()', () => {
 		logger.biz.info('业务日志一条')
 		logger.feature.warn('功能日志一条')
 		expect(fs.existsSync(path.join(logsPath, 'app/app.log'))).toBe(true)
-		fs.rmSync(logsPath, { recursive: true, force: true })
+		setTimeout(() => {
+			if (fs.existsSync(logsPath)) {
+				fs.rmSync(logsPath, { recursive: true, force: true })
+			}
+		}, 300)
 	})
 })

@@ -4,13 +4,20 @@ export type * from './types.js'
 
 /**
  * 数据库适配器
+ * - 支持 `using` 语法糖, 将在 `using` 块结束时自动调用 `submit()` 方法(如果实例提前销毁则不会调用 `submit()` 方法(避免重复销毁))
  */
 export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<string, (...args: any[]) => any> = {}> {
 	private _bus: Bus<DbFitEvents<this>>
 	private _query: O['query']
 	private _queryCount = 0
 	private _isDestroyed = false
-	private _borrow?: DbFit
+	private _borrow?: DbFit;
+
+	/** 支持 using */
+	[Symbol.dispose]() {
+		if (this.isDestroyed) return
+		return this.submit()
+	}
 
 	/** event Bus */
 	get bus(): Bus<DbFitEvents<this> & E> {
@@ -158,6 +165,7 @@ export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<strin
 
 	/**
 	 * 提交查询
+	 * - 使用 `using` 声明, 你可以不需要主动调用该方法
 	 * @param args 传递给 destroy 和 hook:destroy 事件的参数
 	 */
 	async submit(...args: any[]): Promise<void> {

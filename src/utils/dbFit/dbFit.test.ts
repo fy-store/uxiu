@@ -285,4 +285,38 @@ describe('new DbFit()', () => {
 			)
 		).toBe('b')
 	})
+
+	it('using', async () => {
+		class Admin extends DbFit<{
+			query: (sql: string, p: Record<string, any>) => Promise<any>
+		}> {
+			constructor() {
+				super({
+					query(sql, p) {
+						return Promise.resolve({ name: 'test' })
+					}
+				})
+			}
+
+			get(id: number) {
+				return this.query<{ name: string }>('select * from admin where id = :id', { id })
+			}
+		}
+
+		const eventResult = {
+			destroy: false
+		}
+		const exec = async () => {
+			using admin = new Admin()
+			admin.bus.on('destroy', () => {
+				eventResult.destroy = true
+			})
+			await admin.get(1)
+		}
+
+		await exec()
+		expect(eventResult).toEqual({
+			destroy: true
+		})
+	})
 })

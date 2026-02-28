@@ -15,8 +15,8 @@ importers:
         specifier: ^0.87.0
         version: 0.87.0
       event-imt:
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: 0.2.0-alpha.1
+        version: 0.2.0-alpha.1
       koa:
         specifier: ^3.x.x
         version: 3.1.1
@@ -881,8 +881,8 @@ packages:
   estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
-  event-imt@0.1.0:
-    resolution: {integrity: sha512-GzTKbVAflbgx24EPsk4E6Gx8MN4MVugor1ZCHJ579Uhhy2bfyfGm5opfx523pOIE/hb8qtjQFN5EhEtOmedxjw==}
+  event-imt@0.2.0-alpha.1:
+    resolution: {integrity: sha512-iyJBzgSOorEn7devRQxKEfb2xvtViHJ8JeQ4WkNxtfWZ+Dqi7aDR19RLP+T6GGQLzuza0yRV2owWeER3eCzijw==}
 
   expect-type@1.1.0:
     resolution: {integrity: sha512-bFi65yM+xZgk+u/KRIpekdSYkTB5W1pEf0Lt8Q8Msh7b+eQ7LXVtIB1Bkm4fvclDEL1b2CZkMhv2mOeF8tMdkA==}
@@ -2064,7 +2064,7 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.6
 
-  event-imt@0.1.0: {}
+  event-imt@0.2.0-alpha.1: {}
 
   expect-type@1.1.0: {}
 
