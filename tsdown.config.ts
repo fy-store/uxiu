@@ -9,6 +9,6 @@ export default defineConfig({
     outDir: './dist',
 	target: 'es2020',
 	platform: 'node',
-	exports: true,
+	// exports: true,
 	unbundle: true
 })
