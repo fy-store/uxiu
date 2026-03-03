@@ -4,7 +4,7 @@ export type * from './types.js'
 
 /**
  * 数据库适配器
- * - 支持 `using` 语法糖, 将在 `using` 块结束时自动调用 `submit()` 方法(如果实例提前销毁则不会调用 `submit()` 方法(避免重复销毁))
+ * - 支持 `using` 语法糖, 将在 `using` 块结束时自动调用 `destroy()` 方法(如果实例提前销毁则不会调用 `destroy()` 方法(避免重复销毁))
  */
 export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<string, (...args: any[]) => any> = {}> {
 	private _bus: Bus<DbFitEvents<this>>
@@ -16,7 +16,7 @@ export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<strin
 	/** 支持 using */
 	[Symbol.dispose]() {
 		if (this.isDestroyed) return
-		return this.submit()
+		return this.destroy(true)
 	}
 
 	/** event Bus */
@@ -111,6 +111,7 @@ export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<strin
 			}
 			return result
 		} catch (error) {
+			// sql 执行失败, 触发销毁事件, 设计原则: 销毁函数旨在清理副作用
 			if (this._bus.has('hook:destroy')) {
 				await this._bus.emitWait('hook:destroy', this, {
 					emitType: 'error',
@@ -132,6 +133,7 @@ export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<strin
 
 	/**
 	 * 销毁实例
+	 * - 使用 `using` 声明, 你可以不需要主动调用该方法
 	 * @param emitEvent 是否触发 destroy 事件, 默认为 true
 	 * @param args 传递给 destroy 事件的参数
 	 */
@@ -165,7 +167,6 @@ export class DbFit<O extends DbFitOptions = DbFitOptions, E extends Record<strin
 
 	/**
 	 * 提交查询
-	 * - 使用 `using` 声明, 你可以不需要主动调用该方法
 	 * @param args 传递给 destroy 和 hook:destroy 事件的参数
 	 */
 	async submit(...args: any[]): Promise<void> {

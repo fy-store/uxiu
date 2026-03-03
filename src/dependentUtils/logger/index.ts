@@ -5,9 +5,11 @@ import path from 'node:path'
 export type * from './types.js'
 
 // 未正常退出时将未记录完的日志继续记录
-process.on('exit', () => {
-	log4js.shutdown()
-})
+if (typeof process !== 'undefined') {
+	process.on('exit', () => {
+		log4js.shutdown()
+	})
+}
 let flag = false
 // 内部实现类，导出时通过带泛型的构造签名包装以获得类型推断
 class _Logger {
