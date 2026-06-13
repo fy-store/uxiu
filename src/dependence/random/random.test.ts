@@ -8,6 +8,19 @@ describe('random()', () => {
 		expect(result).toBeLessThan(10)
 	})
 
+	it('支持负数区间', () => {
+		const result = random(-10, -5)
+		expect(result).toBeGreaterThanOrEqual(-10)
+		expect(result).toBeLessThan(-5)
+	})
+
+	it('校验随机整数区间', () => {
+		expect(() => random(1.1, 10)).toThrow(TypeError)
+		expect(() => random(10, 10)).toThrow(RangeError)
+		expect(() => random(10, 0)).toThrow(RangeError)
+		expect(() => random(0, 2 ** 48)).toThrow(RangeError)
+	})
+
 	it('生成随机字符串', () => {
 		const str = random.randomStr(10)
 		expect(str).toHaveLength(10)

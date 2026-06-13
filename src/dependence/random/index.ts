@@ -1,18 +1,51 @@
 import type { ReadonlyDeep } from '../../utils/readonly/types/index.js'
 import { readonly } from '../../utils/readonly/index.js'
-import { randomInt } from 'crypto'
+
+const RANDOM_BYTES_LENGTH = 6
+const RANDOM_SOURCE_RANGE = 2 ** (RANDOM_BYTES_LENGTH * 8)
+
+function random48BitInteger(): number {
+	const bytes = globalThis.crypto.getRandomValues(new Uint8Array(RANDOM_BYTES_LENGTH))
+
+	let result = 0
+	for (const byte of bytes) {
+		result = result * 256 + byte
+	}
+	return result
+}
 
 /**
  * 生成一个安全随机数整数
  * - min <= n < max
  * - (max - min) 必须小于 2^48
  * - min 和 max 必须是 安全整数
- * - 该方法是基于 crypto.randomInt() 的
+ * - 该方法基于 globalThis.crypto.getRandomValues(), 支持浏览器和 Node.js
  * @param min 最小值(包含最小值)
  * @param max 最大值(取不到最大值)
  */
 export function random(min: number, max: number): number {
-	return randomInt(min, max)
+	if (!Number.isSafeInteger(min)) {
+		throw new TypeError('min must be a safe integer')
+	}
+	if (!Number.isSafeInteger(max)) {
+		throw new TypeError('max must be a safe integer')
+	}
+
+	const range = max - min
+	if (range <= 0) {
+		throw new RangeError('max must be greater than min')
+	}
+	if (range >= RANDOM_SOURCE_RANGE) {
+		throw new RangeError('max - min must be less than 2^48')
+	}
+
+	const unbiasedLimit = RANDOM_SOURCE_RANGE - (RANDOM_SOURCE_RANGE % range)
+	let value: number
+	do {
+		value = random48BitInteger()
+	} while (value >= unbiasedLimit)
+
+	return min + (value % range)
 }
 
 /** a-z 字符列表 */
