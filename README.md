@@ -1,47 +1,34 @@
-# 项目简介
+# uxiu
 
-该项目是为 koa 后端应用提供基础模块的工具包
+为 Koa 后端应用提供基础模块的工具包。
 
-## 快速开始
-
-使用 cli 工具快速搭建项目骨架
-
-**全局安装**
-
-**pnpm**
+## 安装
 
 ```bash
-pnpm i -g uxiu-cli
+pnpm add uxiu
 ```
 
-**yarn**
+## Monorepo 结构
 
-```bash
-yarn global add uxiu-cli
+```text
+packages/
+  core/    npm 包 uxiu
 ```
 
-**npm**
+## 开发
+
+需要 Node.js 22+ 和 pnpm 10+。
 
 ```bash
-npm i -g uxiu-cli
+pnpm install
+pnpm check
 ```
 
-**临时运行 cli**
-
-**pnpm**
+常用命令：
 
 ```bash
-pnpx uxiu-cli
-```
-
-**yarn**
-
-```bash
-yarn dlx uxiu-cli
-```
-
-**npm**
-
-```bash
-npx uxiu-cli
+pnpm test
+pnpm test:cov
+pnpm typecheck
+pnpm build
 ```

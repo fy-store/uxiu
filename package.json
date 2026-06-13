@@ -1,42 +1,21 @@
 {
-	"name": "uxiu",
+	"name": "uxiu-monorepo",
+	"private": true,
 	"type": "module",
-	"version": "0.21.0",
-	"description": "为 koa 后端应用提供基础模块的工具包",
-	"types": "./dist/index.d.ts",
-	"exports": {
-		".": "./dist/index.mjs",
-		"./dependence": "./dist/dependence.mjs",
-		"./node": "./dist/node.mjs",
-		"./utils": "./dist/utils.mjs",
-		"./package.json": "./package.json"
-	},
-	"sideEffects": false,
-	"files": [
-		"dist",
-		"*.d.ts"
-	],
+	"packageManager": "pnpm@10.33.0",
 	"engines": {
-		"node": ">=22.0.0"
+		"node": ">=22.0.0",
+		"pnpm": ">=10.0.0"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/fy-store/uxiu.git"
-	},
-	"keywords": [
-		"uxiu",
-		"uxiu-cli",
-		"koa"
-	],
-	"author": "feiYu <feiyucode@gmail.com>",
-	"license": "MIT",
 	"scripts": {
-		"test": "vitest",
-		"test:cov": "vitest run --coverage",
-		"dev": "cross-env NODE_ENV=development tsx watch ./src/index.ts",
-		"test:dev": "cross-env NODE_ENV=development port=3323 tsx watch ./tests/dev/index.ts",
-		"build": "tsdown",
-		"priview": "pnpm run build && pnpm run pro"
+		"build": "pnpm --filter ./packages/core run build",
+		"dev": "pnpm --filter ./packages/core run dev",
+		"test": "pnpm --filter ./packages/core run test",
+		"test:run": "pnpm --filter ./packages/core run test:run",
+		"test:cov": "pnpm --filter ./packages/core run test:cov",
+		"test:dev": "pnpm --filter ./packages/core run test:dev",
+		"typecheck": "pnpm -r --if-present run typecheck",
+		"check": "pnpm typecheck && pnpm test:run && pnpm build"
 	},
 	"devDependencies": {
 		"@types/koa": "^3.0.3",
@@ -50,34 +29,5 @@
 		"tsx": "^4.22.4",
 		"typescript": "^6.0.3",
 		"vitest": "^4.1.8"
-	},
-	"peerDependencies": {
-		"@koa/router": "^15.0.0",
-		"koa": "^3.0.0",
-		"log4js": "^6.0.0",
-		"path-to-regexp": "^8.0.0"
-	},
-	"peerDependenciesMeta": {
-		"@koa/router": {
-			"optional": true
-		},
-		"koa": {
-			"optional": true
-		},
-		"log4js": {
-			"optional": true
-		},
-		"path-to-regexp": {
-			"optional": true
-		}
-	},
-	"dependencies": {
-		"@oxc-project/runtime": "^0.135.0",
-		"event-imt": "^0.2.7"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": [
-			"esbuild"
-		]
 	}
 }

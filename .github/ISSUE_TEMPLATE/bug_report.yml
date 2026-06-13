@@ -1,0 +1,42 @@
+name: Bug report
+description: 报告可复现的问题
+title: '[Bug] '
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: 提交前请确认问题可以在当前版本中稳定复现。
+  - type: input
+    id: version
+    attributes:
+      label: uxiu 版本
+      placeholder: 0.21.0
+    validations:
+      required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js 版本
+      placeholder: 22.x
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 最小复现
+      description: 请提供代码、仓库或可执行步骤。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true

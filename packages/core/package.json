@@ -1,0 +1,69 @@
+{
+	"name": "uxiu",
+	"type": "module",
+	"version": "0.21.0",
+	"description": "为 koa 后端应用提供基础模块的工具包",
+	"types": "./dist/index.d.mts",
+	"exports": {
+		".": "./dist/index.mjs",
+		"./dependence": "./dist/dependence.mjs",
+		"./node": "./dist/node.mjs",
+		"./utils": "./dist/utils.mjs",
+		"./package.json": "./package.json"
+	},
+	"sideEffects": false,
+	"files": [
+		"dist"
+	],
+	"engines": {
+		"node": ">=22.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/fy-store/uxiu.git",
+		"directory": "packages/core"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"keywords": [
+		"uxiu",
+		"koa"
+	],
+	"author": "feiYu <feiyucode@gmail.com>",
+	"license": "MIT",
+	"scripts": {
+		"build": "tsdown",
+		"dev": "cross-env NODE_ENV=development tsx watch ./src/index.ts",
+		"test": "vitest",
+		"test:run": "vitest run",
+		"test:cov": "vitest run --coverage",
+		"test:dev": "cross-env NODE_ENV=development port=3323 tsx watch ./tests/dev/index.ts",
+		"typecheck": "tsc --noEmit",
+		"prepack": "pnpm run build"
+	},
+	"peerDependencies": {
+		"@koa/router": "^15.0.0",
+		"koa": "^3.0.0",
+		"log4js": "^6.0.0",
+		"path-to-regexp": "^8.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@koa/router": {
+			"optional": true
+		},
+		"koa": {
+			"optional": true
+		},
+		"log4js": {
+			"optional": true
+		},
+		"path-to-regexp": {
+			"optional": true
+		}
+	},
+	"dependencies": {
+		"@oxc-project/runtime": "^0.135.0",
+		"event-imt": "^0.2.7"
+	}
+}
