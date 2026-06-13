@@ -6,7 +6,7 @@
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": "./dist/index.mjs",
-		"./dependent": "./dist/dependent.mjs",
+		"./dependence": "./dist/dependence.mjs",
 		"./node": "./dist/node.mjs",
 		"./utils": "./dist/utils.mjs",
 		"./package.json": "./package.json"
