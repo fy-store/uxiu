@@ -1,5 +1,5 @@
-import type { Context, Next } from 'koa'
-import type { Bus } from 'event-imt'
+import type { Context } from 'koa'
+import type { Bus, InterfaceToType } from 'event-imt'
 import Koa from 'koa'
 import http from 'node:http'
 import type { LoggerOptions, Logger } from '../logger/index.js'
@@ -101,7 +101,7 @@ export interface CreateAppConfig<T extends Record<string, boolean> = {}> {
 	onMountError?: (error: any) => void
 }
 
-export interface BusEvent {
+export interface CreateAppBusEvent {
 	/**
 	 * 当请求发生错误时触发
 	 * @param error 错误
@@ -134,31 +134,27 @@ export interface BusEvent {
 	 * @param koaCtx koa 上下文
 	 */
 	'hook:end': (koaCtx: Context) => void
-	[key: symbol]: (...args: any[]) => any
 }
 
 declare module 'koa' {
 	interface Context {
 		/** 请求ID, 每次请求自动生成 */
 		requestId: string
-		/** 当前工作目录路径(进程) */
+		/** 当前工作目录路径(进程启动路径) */
 		pwd: string
 		/** 发布订阅模块 */
-		bus: Bus<BusEvent>
+		bus: Bus<InterfaceToType<CreateAppBusEvent>>
 		/** 日志实例 */
 		logger?: Logger
 	}
-}
 
-// @ts-ignore
-declare module '@koa/router' {
-	interface RouterParamContext {
+	interface DefaultContext {
 		/** 请求ID, 每次请求自动生成 */
 		requestId: string
-		/** 当前工作目录路径(进程) */
+		/** 当前工作目录路径(进程启动路径) */
 		pwd: string
 		/** 发布订阅模块 */
-		bus: Bus<BusEvent>
+		bus: Bus<InterfaceToType<CreateAppBusEvent>>
 		/** 日志实例 */
 		logger?: Logger
 	}

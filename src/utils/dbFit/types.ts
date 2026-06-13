@@ -9,7 +9,7 @@ export interface DBFitDestroyCtx {
 	error?: any
 }
 
-export type DbFitEvents<T extends DbFit = DbFit> = {
+export interface DbFitEvents<T extends DbFit = DbFit> {
 	/** 首次执行 query */
 	firstQuery?: (self: T, ...args: []) => void
 	/** 首次执行 query */
