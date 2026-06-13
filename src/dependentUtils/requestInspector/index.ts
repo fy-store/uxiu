@@ -1,17 +1,16 @@
 import type {
-	InspectorConf,
-	InspectorOptions,
-	InspectorRule,
-	InspectorMethod,
-	InspectorRuleConf,
-	InspectorRuleSerialize
+	RequestInspectorConfig,
+	RequestInspectorOptions,
+	RequestInspectorRule,
+	RequestInspectorMethod,
+	RequestInspectorRuleConfig,
+	RequestInspectorRuleSerialize
 } from './types.js'
 import { isArray, isBoolean, isObject, isString } from '../../utils/index.js'
-import { pathToRegexp } from 'path-to-regexp'
 import path from 'path/posix'
 export type * from './types.js'
 
-const methods: InspectorMethod[] = [
+const methods: RequestInspectorMethod[] = [
 	'GET',
 	'POST',
 	'PUT',
@@ -26,13 +25,19 @@ const methods: InspectorMethod[] = [
 /**
  * 创建一个请求检查器
  */
-export class InspectorRequest {
+class RequestInspector {
+	private _pathToRegexp: typeof import('path-to-regexp').pathToRegexp
+
+	constructor(pathToRegexp: typeof import('path-to-regexp').pathToRegexp) {
+		this._pathToRegexp = pathToRegexp
+	}
+
 	/**
 	 * 创建一个 path 规则
 	 * @param confs 规则配置
 	 * @param options 配置选项
 	 */
-	create<T = any>(confs: InspectorConf<T>[], options: InspectorOptions = {}): InspectorRule<T>[] {
+	create<T = any>(confs: RequestInspectorConfig<T>[], options: RequestInspectorOptions = {}): RequestInspectorRule<T>[] {
 		if (!isArray(confs)) {
 			throw new TypeError('confs must be an array')
 		}
@@ -61,7 +66,7 @@ export class InspectorRequest {
 			}
 
 			if (conf.methods === null && conf.path === null) {
-				const result: InspectorRule<T> = {
+				const result: RequestInspectorRule<T> = {
 					methods: null,
 					path: null,
 					regex: null
@@ -102,7 +107,7 @@ export class InspectorRequest {
 					throw new Error(`options.confs[${i}].path must be a valid path, but got "${conf.path}"`)
 				}
 				const p = path.join(base, conf.path)
-				const result: InspectorRule<T> = {
+				const result: RequestInspectorRule<T> = {
 					methods: (function () {
 						if (conf.methods === '*') {
 							return [...methods]
@@ -111,8 +116,12 @@ export class InspectorRequest {
 						return [conf.methods]
 					})(),
 					path: p,
-					regex: pathToRegexp(p.replaceAll('*', '{:_}'), { sensitive, trailing, end: true, delimiter: '/' })
-						.regexp
+					regex: this._pathToRegexp(p.replaceAll('*', '{:_}'), {
+						sensitive,
+						trailing,
+						end: true,
+						delimiter: '/'
+					}).regexp
 				}
 
 				if (Object.hasOwn(conf, 'meta')) {
@@ -130,7 +139,7 @@ export class InspectorRequest {
 	 * @param method 方法
 	 * @param path 路径
 	 */
-	check<T = any>(rules: InspectorRule<T>[], method: InspectorMethod | null, path: string | null) {
+	check<T = any>(rules: RequestInspectorRule<T>[], method: RequestInspectorMethod | null, path: string | null) {
 		if (method === null || path === null) {
 			return false
 		}
@@ -143,9 +152,9 @@ export class InspectorRequest {
 	 * 获取规则中的配置
 	 * @param rules 规则列表
 	 */
-	getConf<T = any>(rules: InspectorRule<T>[]): InspectorRuleConf<T>[] {
+	getConf<T = any>(rules: RequestInspectorRule<T>[]): RequestInspectorRuleConfig<T>[] {
 		return rules.map((rule) => {
-			const result: InspectorRuleConf<T> = {
+			const result: RequestInspectorRuleConfig<T> = {
 				methods: rule.methods === null ? null : [...rule.methods],
 				path: rule.path
 			}
@@ -160,9 +169,9 @@ export class InspectorRequest {
 	 * 规则序列化
 	 * @param rules 规则列表
 	 */
-	rulesToSerialize<T = any>(rules: InspectorRule<T>[]): InspectorRuleSerialize<T>[] {
+	rulesToSerialize<T = any>(rules: RequestInspectorRule<T>[]): RequestInspectorRuleSerialize<T>[] {
 		return rules.map((rule) => {
-			const result: InspectorRuleSerialize<T> = {
+			const result: RequestInspectorRuleSerialize<T> = {
 				methods: rule.methods === null ? null : [...rule.methods],
 				path: rule.path,
 				regex:
@@ -171,7 +180,7 @@ export class InspectorRequest {
 						: {
 								source: rule.regex.source,
 								flags: rule.regex.flags
-						  }
+							}
 			}
 			if (Object.hasOwn(rule, 'meta')) {
 				result.meta = rule.meta
@@ -184,9 +193,9 @@ export class InspectorRequest {
 	 * 序列化转回规则
 	 * @param rules 序列化规则列表
 	 */
-	serializeToRules<T = any>(ruleSerializes: InspectorRuleSerialize<T>[]): InspectorRule<T>[] {
+	serializeToRules<T = any>(ruleSerializes: RequestInspectorRuleSerialize<T>[]): RequestInspectorRule<T>[] {
 		return ruleSerializes.map((rule) => {
-			const result: InspectorRule<T> = {
+			const result: RequestInspectorRule<T> = {
 				methods: rule.methods === null ? null : [...rule.methods],
 				path: rule.path,
 				regex: rule.regex === null ? null : new RegExp(rule.regex.source, rule.regex.flags)
@@ -200,7 +209,9 @@ export class InspectorRequest {
 }
 
 /**
- * 请求检查器实例
- * @deprecated 该方法仅用于向后兼容, 请使用 InspectorRequest 类创建实例
+ * 创建一个请求校验器
  */
-export const inspector = new InspectorRequest()
+export async function createRequestInspector() {
+	const { pathToRegexp } = await import('path-to-regexp')
+	return new RequestInspector(pathToRegexp)
+}

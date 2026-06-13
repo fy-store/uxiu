@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { Logger } from './index.js'
+import { createLogger } from './index.js'
 import path from 'node:path'
 import fs from 'node:fs'
 
@@ -9,12 +9,12 @@ describe('new Logger()', () => {
 		if (fs.existsSync(logsPath)) {
 			fs.rmSync(logsPath, { recursive: true, force: true })
 		}
-		const logger = new Logger({
+		const logger = await createLogger({
 			storageDirPath: logsPath
 		})
 		logger.app.info('这是一条应用日志')
 		logger.debug.debug('这是一条调试日志')
-		logger.collapse.error('这是一条崩溃日志')
+		logger.crash.error('这是一条崩溃日志')
 		expect(fs.existsSync(path.join(logsPath, 'app/app.log'))).toBe(true)
 		expect(fs.existsSync(path.join(logsPath, 'debug/debug.log'))).toBe(true)
 		expect(fs.existsSync(path.join(logsPath, 'collapse/collapse.log'))).toBe(true)
@@ -25,12 +25,12 @@ describe('new Logger()', () => {
 		}, 300)
 	})
 
-	it('按 expandCategories 自动扩展属性并可用（含类型推断）', () => {
+	it('按 expandCategories 自动扩展属性并可用（含类型推断）', async () => {
 		const logsPath = path.join(import.meta.dirname, '../../../logs/test2')
 		if (fs.existsSync(logsPath)) {
 			fs.rmSync(logsPath, { recursive: true, force: true })
 		}
-		const logger = new Logger({
+		const logger = await createLogger({
 			storageDirPath: logsPath,
 			expandCategories: {
 				/** 注释1 */

@@ -1,8 +1,6 @@
 import type { CreateAppMountedCtx, CreateAppConfig } from './types.js'
 import type { Context } from 'koa'
-import crypto from 'node:crypto'
 import http from 'http'
-import Koa from 'koa'
 import { Bus } from 'event-imt'
 import { readonly } from '../../utils/index.js'
 export * from './types.js'
@@ -11,10 +9,13 @@ export * from './types.js'
  * 创建一个 koa 实例
  * @param config 配置选项
  */
-export async function createApp(config: CreateAppConfig = {}) {
+export async function createApp<const T extends Record<string, boolean> = {}>(
+	config: CreateAppConfig<T> = {}
+): Promise<CreateAppMountedCtx<T>> {
+	const { default: Koa } = await import('koa')
 	const opEnv = config.env === 'development' ? 'development' : 'production'
 	const { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset, env = opEnv } = config.koaOptions ?? {}
-	const ctx: CreateAppMountedCtx = {
+	const ctx: CreateAppMountedCtx<T> = {
 		env: opEnv,
 		port: config.port ?? 3323,
 		app: null as any,
@@ -30,13 +31,13 @@ export async function createApp(config: CreateAppConfig = {}) {
 	}
 
 	if (ctx.loggerOptions) {
-		const Logger = (await import('../logger/index.js')).Logger
-		ctx.logger = new Logger(ctx.loggerOptions)
+		const { createLogger } = await import('../logger/index.js')
+		ctx.logger = await createLogger(ctx.loggerOptions)
 	}
 
 	const app = new Koa({ ...ctx.koaOptions, env: ctx.env })
 	app.use(async (koaCtx: Context, next) => {
-		koaCtx.requestId = crypto.randomUUID() + '-' + Date.now()
+		koaCtx.requestId = globalThis.crypto.randomUUID() + '-' + Date.now()
 		koaCtx.pwd = process.cwd()
 		koaCtx.logger = ctx.logger
 		koaCtx.bus = new Bus()
@@ -75,7 +76,7 @@ export async function createApp(config: CreateAppConfig = {}) {
 		await config.beforeMount(readonlyCtx)
 	}
 
-	return new Promise<CreateAppMountedCtx>((resolve, reject) => {
+	return new Promise<CreateAppMountedCtx<T>>((resolve, reject) => {
 		const { mountPortErrorTip = true } = config
 		server.on('error', (error: any) => {
 			if (config.onMountError) {

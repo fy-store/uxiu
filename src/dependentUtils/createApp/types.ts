@@ -22,7 +22,7 @@ export interface CreateAppKoaOptions {
 	// asyncLocalStorage?: boolean;
 }
 
-export interface CreateAppBaseCtx {
+export interface CreateAppBaseCtx<T extends Record<string, boolean> = {}> {
 	/** 挂载的端口 */
 	port: number
 	/** 环境变量 */
@@ -33,49 +33,49 @@ export interface CreateAppBaseCtx {
 	 */
 	koaOptions: CreateAppKoaOptions
 	/** 日志模块配置 */
-	loggerOptions?: LoggerOptions
+	loggerOptions?: LoggerOptions<T>
 }
 
-export type CreateAppBeforeInitCtx = {
+export type CreateAppBeforeInitCtx<T extends Record<string, boolean> = {}> = {
 	/** koa 实例 */
 	app: Koa<Koa.DefaultState, Koa.DefaultContext> | null
 	/** http 服务 */
 	server: http.Server | null
 	/** 日志实例 */
-	logger?: Logger
-} & CreateAppBaseCtx
+	logger?: Logger<T>
+} & CreateAppBaseCtx<T>
 
-export type CreateAppInitedCtx = {
+export type CreateAppInitedCtx<T extends Record<string, boolean> = {}> = {
 	/** koa 实例 */
 	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server | null
 	/** 日志实例 */
-	logger?: Logger
-} & CreateAppBaseCtx
+	logger?: Logger<T>
+} & CreateAppBaseCtx<T>
 
-export type CreateAppBeforeMountCtx = {
+export type CreateAppBeforeMountCtx<T extends Record<string, boolean> = {}> = {
 	/** koa 实例 */
 	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server
 	/** 日志实例 */
-	logger?: Logger
-} & CreateAppBaseCtx
+	logger?: Logger<T>
+} & CreateAppBaseCtx<T>
 
-export type CreateAppMountedCtx = {
+export type CreateAppMountedCtx<T extends Record<string, boolean> = {}> = {
 	/** koa 实例 */
 	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server
 	/** 日志实例 */
-	logger?: Logger
-} & CreateAppBaseCtx
+	logger?: Logger<T>
+} & CreateAppBaseCtx<T>
 
 /**
  * 创建实例配置
  */
-export interface CreateAppConfig {
+export interface CreateAppConfig<T extends Record<string, boolean> = {}> {
 	/** 应用挂载的端口, 默认为 3323 */
 	port?: number
 	/** - env 只能为 'production' | 'development' 默认为 'production' */
@@ -86,15 +86,15 @@ export interface CreateAppConfig {
 	 */
 	koaOptions?: CreateAppKoaOptions
 	/** 日志模块配置 */
-	loggerOptions?: LoggerOptions
+	loggerOptions?: LoggerOptions<T>
 	/** 应用初始化前, 此时 koa 还未创建, server 还未创建, 日志模块还未初始化, 支持 async 返回 Promise 将会等待 */
-	beforeInit?: (ctx: CreateAppBeforeInitCtx) => Promise<any> | void
+	beforeInit?: (ctx: CreateAppBeforeInitCtx<T>) => Promise<any> | void
 	/** 应用初始化后, 此时 koa 已经创建, 日志模块已经初始化, server 还未创建, 支持 async 返回 Promise 将会等待 */
-	inited?: (ctx: CreateAppInitedCtx) => Promise<any> | void
+	inited?: (ctx: CreateAppInitedCtx<T>) => Promise<any> | void
 	/** 应用初始化后http服务挂载前, 此时 koa 已经创建, server 已经创建但还未挂载, 支持 async 返回 Promise 将会等待 */
-	beforeMount?: (ctx: CreateAppBeforeMountCtx) => Promise<any> | void
+	beforeMount?: (ctx: CreateAppBeforeMountCtx<T>) => Promise<any> | void
 	/** 应用初始化后并且http服务已经挂载, 支持 async 返回 Promise 将会等待 */
-	mounted?: (ctx: CreateAppMountedCtx) => Promise<any> | void
+	mounted?: (ctx: CreateAppMountedCtx<T>) => Promise<any> | void
 	/** 端口挂载失败错误提示 */
 	mountPortErrorTip?: boolean
 	/** 应用挂载失败事件 */
