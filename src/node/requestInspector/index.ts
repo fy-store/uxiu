@@ -106,7 +106,7 @@ class RequestInspector {
 				if (!(checkPathReg.test(base) && checkPathReg.test(conf.path))) {
 					throw new Error(`options.confs[${i}].path must be a valid path, but got "${conf.path}"`)
 				}
-				const p = path.join(base, conf.path)
+				const p = path.join(base, conf.path).replaceAll('\\', '/').replaceAll('//', '/')
 				const result: RequestInspectorRule<T> = {
 					methods: (function () {
 						if (conf.methods === '*') {

@@ -283,9 +283,3 @@ export class SessionStore {
 		return this.create<T>(options)
 	}
 }
-
-/**
- * 默认的会话存储实例
- * @description 请使用 new SessionStore() 创建新的实例
- */
-export const session = new SessionStore()

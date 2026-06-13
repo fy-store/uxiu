@@ -6,7 +6,8 @@
 	"types": "./dist/index.d.ts",
 	"exports": {
 		".": "./dist/index.mjs",
-		"./dependentUtils": "./dist/dependentUtils.mjs",
+		"./dependent": "./dist/dependent.mjs",
+		"./node": "./dist/node.mjs",
 		"./utils": "./dist/utils.mjs",
 		"./package.json": "./package.json"
 	},
@@ -16,7 +17,7 @@
 		"*.d.ts"
 	],
 	"engines": {
-		"node": "^18.0.0 || ^20.0.0 || >=22.0.0"
+		"node": ">=22.0.0"
 	},
 	"repository": {
 		"type": "git",
@@ -73,9 +74,6 @@
 	"dependencies": {
 		"@oxc-project/runtime": "^0.135.0",
 		"event-imt": "^0.2.7"
-	},
-	"volta": {
-		"node": "20.17.0"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [

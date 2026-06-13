@@ -15,6 +15,7 @@ export function random(min: number, max: number): number {
 	return randomInt(min, max)
 }
 
+/** a-z 字符列表 */
 const az = [
 	'a',
 	'b',
@@ -44,6 +45,7 @@ const az = [
 	'z'
 ]
 
+/** A-Z 字符列表 */
 const AZ = [
 	'A',
 	'B',
@@ -73,8 +75,10 @@ const AZ = [
 	'Z'
 ]
 
+/** 字符数字列表 */
 const num = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
+/** 符号列表 */
 const sign = [
 	'!',
 	'@',
@@ -110,6 +114,7 @@ const sign = [
 	'`'
 ]
 
+/** a-z, A-Z, 数字, 符号列表 */
 const all = [...az, ...AZ, ...num, ...sign]
 
 const SIGN = Symbol()

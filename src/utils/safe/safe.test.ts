@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { safe } from './index.js'
-import { sleep } from '../../dependentUtils/index.js'
+import { sleep } from '../../dependence/sleep/index.js'
 
 describe('safe()', () => {
 	it('同步函数', () => {
