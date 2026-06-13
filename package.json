@@ -41,17 +41,17 @@
 		"priview": "pnpm run build && pnpm run pro"
 	},
 	"devDependencies": {
-		"@types/koa": "^3.0.1",
+		"@types/koa": "^3.0.3",
 		"@types/koa__router": "^12.0.5",
 		"@types/lodash-es": "^4.17.12",
-		"@types/node": "^20.16.6",
-		"@vitest/coverage-v8": "2.1.8",
-		"cross-env": "^7.0.3",
-		"lodash-es": "^4.17.21",
-		"tsdown": "^0.12.9",
-		"tsx": "^4.19.0",
-		"typescript": "^5.5.4",
-		"vitest": "^2.0.5"
+		"@types/node": "^25.9.3",
+		"@vitest/coverage-v8": "4.1.8",
+		"cross-env": "^10.1.0",
+		"lodash-es": "^4.18.1",
+		"tsdown": "^0.22.2",
+		"tsx": "^4.22.4",
+		"typescript": "^6.0.3",
+		"vitest": "^4.1.8"
 	},
 	"peerDependencies": {
 		"@koa/router": "*",
@@ -60,8 +60,13 @@
 		"path-to-regexp": "^8.x.x"
 	},
 	"dependencies": {
+<<<<<<< HEAD
 		"@oxc-project/runtime": "^0.87.0",
 		"event-imt": "0.2.0-alpha.1"
+=======
+		"@oxc-project/runtime": "^0.135.0",
+		"event-imt": "^0.2.7"
+>>>>>>> 734161f (build: 升级依赖)
 	},
 	"volta": {
 		"node": "20.17.0"
