@@ -17,12 +17,10 @@ describe('new Logger()', () => {
 		logger.crash.error('这是一条崩溃日志')
 		expect(fs.existsSync(path.join(logsPath, 'app/app.log'))).toBe(true)
 		expect(fs.existsSync(path.join(logsPath, 'debug/debug.log'))).toBe(true)
-		expect(fs.existsSync(path.join(logsPath, 'collapse/collapse.log'))).toBe(true)
+		expect(fs.existsSync(path.join(logsPath, 'crash/crash.log'))).toBe(true)
 		setTimeout(() => {
-			if (fs.existsSync(logsPath)) {
-				fs.rmSync(logsPath, { recursive: true, force: true })
-			}
-		}, 300)
+			fs.rmSync(logsPath, { recursive: true, force: true })
+		}, 500)
 	})
 
 	it('按 expandCategories 自动扩展属性并可用（含类型推断）', async () => {
@@ -49,9 +47,7 @@ describe('new Logger()', () => {
 		logger.feature.warn('功能日志一条')
 		expect(fs.existsSync(path.join(logsPath, 'app/app.log'))).toBe(true)
 		setTimeout(() => {
-			if (fs.existsSync(logsPath)) {
-				fs.rmSync(logsPath, { recursive: true, force: true })
-			}
-		}, 300)
+			fs.rmSync(logsPath, { recursive: true, force: true })
+		}, 500)
 	})
 })

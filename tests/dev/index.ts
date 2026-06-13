@@ -1,9 +1,19 @@
-import { readonly, createApp } from '@/index.js'
+import { readonly } from '@/index.js'
 
-const app = await createApp({
-	port: 3323,
-	mounted(ctx) {
-		// console.log(ctx)
+const obj = readonly(
+	{
+		map: new Map([
+			['a', { a: 1 }],
+			['b', { b: 1 }]
+		])
 	},
-})
-console.log(app)
+	{ plugins: [readonly.plugins.collection] }
+)
+
+console.log('obj', obj)
+
+const v = obj.map.values()
+v.map((it) => {
+	it.a = 100
+}).toArray()
+console.log('obj', obj)

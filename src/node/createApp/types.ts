@@ -150,6 +150,7 @@ declare module 'koa' {
 	}
 }
 
+// @ts-ignore
 declare module '@koa/router' {
 	interface RouterParamContext {
 		/** 请求ID, 每次请求自动生成 */
