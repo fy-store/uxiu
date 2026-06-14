@@ -14,7 +14,7 @@ hero:
       link: /guide/getting-started
     - theme: alt
       text: 浏览 API
-      link: /api/type-guards
+      link: /api/
     - theme: alt
       text: GitHub
       link: https://github.com/fy-store/uxiu

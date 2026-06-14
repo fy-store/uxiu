@@ -28,6 +28,18 @@ await sessions.delete(id)
 
 ## 方法
 
+### `SessionStore` 实例
+
+| 方法 | 说明 |
+| --- | --- |
+| `create(options?)` | 创建会话存储操作对象 |
+| `createSessionId()` | 生成 UUID 与时间戳组成的会话 ID |
+| `sessionclone(data)` | 使用 JSON 序列化克隆数据 |
+| `createMemoryStoreOptions()` | 创建默认内存存储适配器 |
+| `createSessionStore(options?)` | `create()` 的废弃别名 |
+
+### `create()` 返回对象
+
 | 方法 | 说明 |
 | --- | --- |
 | `get(id)` | 获取会话，不存在时抛错 |

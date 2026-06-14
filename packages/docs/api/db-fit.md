@@ -36,6 +36,20 @@ class UserRepository extends DbFit<{
 
 实例销毁后再次 `query()` 会抛出异常。
 
+## 方法总览
+
+| 方法 | 说明 |
+| --- | --- |
+| `query(...args)` | 执行查询并触发生命周期事件 |
+| `destroy(emitEvent?, ...args)` | 销毁实例，可选择是否触发销毁事件 |
+| `submit(...args)` | 提交并结束实例 |
+| `ifel(condition, truthy, falsy?)` | 布尔条件分支 |
+| `ifVoid(condition, whenVoid, then?)` | `undefined` 条件分支 |
+| `ifNotVoid(condition, whenNotVoid, then?)` | 非 `undefined` 条件分支 |
+| `[Symbol.dispose]()` | `using` 块结束时自动调用销毁逻辑 |
+
+`ifel`、`ifVoid` 和 `ifNotVoid` 同时提供同名静态方法。`catchErrorProxy` 只作为静态方法提供。
+
 ## 生命周期事件
 
 ```ts
@@ -80,7 +94,10 @@ await repository.submit()
 
 ```ts
 const transaction = new DbFit({ query: transactionQuery })
-const users = new UserRepository(transaction)
+const users = new DbFit({
+	query: transactionQuery,
+	borrow: transaction
+})
 ```
 
 ## 条件辅助

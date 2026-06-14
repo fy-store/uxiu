@@ -76,4 +76,4 @@ console.log('listening', server.address())
 
 - 了解不同运行环境应使用的[模块入口](/guide/module-entry)
 - 查看完整的[Koa 应用示例](/guide/koa-quickstart)
-- 从[类型判断 API](/api/type-guards)开始浏览工具
+- 从 [API 总览](/api/) 查看全部工具方法

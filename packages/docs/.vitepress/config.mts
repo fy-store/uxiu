@@ -22,7 +22,7 @@ export default defineConfig({
 		},
 		nav: [
 			{ text: '指南', link: '/guide/getting-started' },
-			{ text: 'API', link: '/api/type-guards' },
+			{ text: 'API', link: '/api/' },
 			{ text: '维护', link: '/maintenance/development' },
 			{
 				text: 'v0.21.0',
@@ -42,14 +42,24 @@ export default defineConfig({
 				]
 			},
 			{
-				text: '通用 API',
+				text: 'API',
+				items: [
+					{ text: 'API 总览', link: '/api/' },
+					{ text: '运行环境依赖', link: '/guide/module-entry' },
+				]
+			},
+			{
+				text: '纯 JavaScript API',
 				items: [
 					{ text: '类型判断', link: '/api/type-guards' },
 					{ text: '对象与校验工具', link: '/api/object-utils' },
 					{ text: '只读代理', link: '/api/readonly' },
-					{ text: '异步与随机工具', link: '/api/dependence' },
 					{ text: 'DbFit', link: '/api/db-fit' }
 				]
+			},
+			{
+				text: '宿主依赖 API',
+				items: [{ text: '计时、随机与频率控制', link: '/api/dependence' }]
 			},
 			{
 				text: 'Node API',

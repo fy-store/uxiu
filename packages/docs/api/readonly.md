@@ -91,6 +91,22 @@ const state = readonly(
 | `typedArray` | TypedArray 和 Node Buffer 的原地修改方法 |
 | `binary` | 上述三个二进制插件数组 |
 
+内置插件既可以通过 `readonly.plugins` 获取，也可以直接导入：
+
+```ts
+import {
+	arrayBufferReadonlyPlugin,
+	binaryReadonlyPlugins,
+	collectionReadonlyPlugin,
+	dataViewReadonlyPlugin,
+	dateReadonlyPlugin,
+	readonlyPlugins,
+	typedArrayReadonlyPlugin
+} from 'uxiu/utils'
+```
+
+`readonlyPlugins` 与 `readonly.plugins` 指向相同的具名插件集合。
+
 ## 自定义类插件
 
 ```ts

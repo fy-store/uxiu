@@ -33,7 +33,7 @@ isString.all('a', 'b') // true
 isNumber.all(1, 2, 3) // true
 ```
 
-多数 `.all()` 在没有参数时返回 `false`；`isEmpty.all()` 和 `isOriginValue.all()` 遵循 `Array.prototype.every` 语义，空参数返回 `true`。
+多数 `.all()` 在没有参数时返回 `false`；`isEmpty.all()`、`isOriginValue.all()` 和 `isUndefined.all()` 在空参数时返回 `true`。
 
 ## 对象与引用值
 

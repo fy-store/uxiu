@@ -1,6 +1,8 @@
-# 异步与随机工具
+# 计时、随机与频率控制
 
 从 `uxiu/dependence` 导入。
+
+这些工具依赖运行环境提供的 `crypto`、计时器或时间 API，不属于纯 JavaScript 环境无关工具。
 
 ## `random`
 
@@ -85,3 +87,62 @@ stop()
 | `thisContext` | 任意值 | undefined |
 
 该工具基于 `setTimeout`，会校正下一次等待时间，但不适合作为强实时调度器。
+
+## `debounce`
+
+在连续调用停止指定时间后执行函数。默认在尾部执行；`immediate: true` 时改为首次调用立即执行。
+
+```ts
+import { debounce } from 'uxiu/dependence'
+
+const search = debounce(
+	(keyword: string) => {
+		console.log(keyword)
+	},
+	300
+)
+
+search('u')
+search('uxiu')
+
+search.cancel()
+search.flush('立即执行')
+```
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `immediate` | `false` | 是否在首次调用时立即执行 |
+
+返回的防抖函数提供：
+
+- `cancel()`：取消等待中的调用。
+- `flush(...args)`：存在等待任务时取消计时，并使用本次参数立即执行。
+
+## `throttle`
+
+限制函数在指定时间内最多执行一次。
+
+```ts
+import { throttle } from 'uxiu/dependence'
+
+const report = throttle(
+	(value: number) => {
+		console.log(value)
+	},
+	1000,
+	{
+		immediately: true,
+		trailing: true
+	}
+)
+
+report(1)
+report.cancel()
+```
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `immediately` | `true` | 是否允许首次调用立即执行 |
+| `trailing` | `false` | 限制期间再次调用后，是否在尾部补充执行一次 |
+
+返回函数的 `cancel()` 会清除尾部任务并重置节流状态。
