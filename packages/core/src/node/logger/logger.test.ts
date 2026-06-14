@@ -4,7 +4,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 
 describe('new Logger()', () => {
-	it('写入日志', () => {
+	it('写入日志', async () => {
 		const logsPath = path.join(import.meta.dirname, '../../../logs/test1')
 		if (fs.existsSync(logsPath)) {
 			fs.rmSync(logsPath, { recursive: true, force: true })
