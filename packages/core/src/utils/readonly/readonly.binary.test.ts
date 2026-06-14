@@ -72,19 +72,21 @@ describe('arrayBufferReadonlyPlugin', () => {
 })
 
 describe('dataViewReadonlyPlugin', () => {
-	const setters: Array<[string, any]> = [
-		['setInt8', 1],
-		['setUint8', 1],
-		['setInt16', 1],
-		['setUint16', 1],
-		['setInt32', 1],
-		['setUint32', 1],
-		['setFloat16', 1.5],
-		['setFloat32', 1.5],
-		['setFloat64', 1.5],
-		['setBigInt64', 1n],
-		['setBigUint64', 1n]
-	]
+	const setters: Array<[string, any]> = (
+		[
+			['setInt8', 1],
+			['setUint8', 1],
+			['setInt16', 1],
+			['setUint16', 1],
+			['setInt32', 1],
+			['setUint32', 1],
+			['setFloat16', 1.5],
+			['setFloat32', 1.5],
+			['setFloat64', 1.5],
+			['setBigInt64', 1n],
+			['setBigUint64', 1n]
+		] as Array<[string, any]>
+	).filter(([method]) => typeof (DataView.prototype as any)[method] === 'function')
 
 	it.each(setters)('阻止 DataView.%s()', (method, value) => {
 		const buffer = new ArrayBuffer(16)
@@ -136,12 +138,16 @@ describe('typedArrayReadonlyPlugin', () => {
 		['Uint16Array', Uint16Array, 1, 9],
 		['Int32Array', Int32Array, 1, 9],
 		['Uint32Array', Uint32Array, 1, 9],
-		['Float16Array', Float16Array, 1.5, 9.5],
 		['Float32Array', Float32Array, 1.5, 9.5],
 		['Float64Array', Float64Array, 1.5, 9.5],
 		['BigInt64Array', BigInt64Array, 1n, 9n],
 		['BigUint64Array', BigUint64Array, 1n, 9n]
 	]
+
+	const Float16ArrayConstructor = (globalThis as Record<string, any>).Float16Array
+	if (typeof Float16ArrayConstructor === 'function') {
+		typedArrays.splice(7, 0, ['Float16Array', Float16ArrayConstructor, 1.5, 9.5])
+	}
 
 	it.each(typedArrays)('阻止 %s 索引赋值', (_name, Constructor, initial, changed) => {
 		const array = new Constructor([initial, initial])
@@ -203,7 +209,10 @@ describe('typedArrayReadonlyPlugin', () => {
 		expect(readonly.isReadonly(reversed)).toBe(true)
 	})
 
-	it('阻止 Uint8Array setFromBase64() 和 setFromHex()', () => {
+	it.runIf(
+		typeof (Uint8Array.prototype as any).setFromBase64 === 'function' &&
+			typeof (Uint8Array.prototype as any).setFromHex === 'function'
+	)('阻止 Uint8Array setFromBase64() 和 setFromHex()', () => {
 		const array = new Uint8Array(4)
 		const target = readonly(array, {
 			tip: 'none',
