@@ -8,8 +8,13 @@
 		"pnpm": ">=10.0.0"
 	},
 	"scripts": {
-		"build": "pnpm --filter ./packages/core run build",
-		"dev": "pnpm --filter ./packages/core run dev",
+		"dev": "pnpm dev:docs",
+		"dev:core": "pnpm --filter uxiu run dev",
+		"dev:docs": "pnpm --filter @uxiu/docs run dev",
+		"build": "pnpm build:core && pnpm build:docs",
+		"build:core": "pnpm --filter uxiu run build",
+		"build:docs": "pnpm --filter @uxiu/docs run build",
+		"preview": "pnpm --filter @uxiu/docs run preview",
 		"test": "pnpm --filter ./packages/core run test",
 		"test:run": "pnpm --filter ./packages/core run test:run",
 		"test:cov": "pnpm --filter ./packages/core run test:cov",
