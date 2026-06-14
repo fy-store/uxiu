@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
+	base: process.env.DOCS_BASE ?? '/',
 	title: 'uxiu',
 	description: '为 Koa 后端应用提供基础能力的 TypeScript 工具库',
 	lang: 'zh-CN',

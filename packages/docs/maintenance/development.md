@@ -70,4 +70,25 @@ pnpm --dir packages/core pack --dry-run
 3. npm 包清单只包含需要的构建产物、README、LICENSE 和 package.json
 4. 四个公开入口均可加载
 
-推送 `v*` 标签后，GitHub Actions 会校验标签版本、发布 npm 包并创建 GitHub Release。仓库需要配置 `NPM_TOKEN`。
+## 自动发布
+
+只有推送到 `master` 分支时才会运行 GitHub Actions。其他分支和 Pull Request 不执行测试、构建或发布。
+
+`master` 流程：
+
+1. 安装冻结锁文件依赖
+2. 运行 core 单元测试
+3. 测试通过后构建并部署文档到 GitHub Pages
+4. 构建 core，并在 npm 中不存在当前版本时发布 `uxiu`
+
+发布 npm 新版本前，需要更新 `packages/core/package.json` 中的 `version`。已存在的版本会跳过 npm 发布，但文档仍会正常部署。
+
+仓库设置要求：
+
+- GitHub Pages 的 Source 选择 `GitHub Actions`
+- Actions 的 Workflow permissions 允许读取仓库内容
+- 在 npm 的 `uxiu` 包设置中添加 GitHub Actions Trusted Publisher：
+  - Organization or user：`fy-store`
+  - Repository：`uxiu`
+  - Workflow filename：`publish.yml`
+  - Allowed actions：`npm publish`

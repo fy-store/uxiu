@@ -53,3 +53,12 @@ pnpm dev
 pnpm build:docs
 pnpm preview
 ```
+
+## 自动发布
+
+推送到 `master` 分支后会自动运行单元测试。测试通过后：
+
+- 部署文档到 `https://fy-store.github.io/uxiu/`
+- 当前 `uxiu` 版本尚未发布时，构建并发布到 npm
+
+其他分支和 Pull Request 不运行校验或发布流程。npm 使用 Trusted Publishing，无需保存长期访问令牌。
