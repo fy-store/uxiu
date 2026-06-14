@@ -3,3 +3,6 @@ dist
 coverage
 logs
 .vitepress
+packages/docs/--host
+packages/docs/.vitepress/cache
+packages/docs/.vitepress/dist
