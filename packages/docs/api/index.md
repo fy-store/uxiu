@@ -108,8 +108,8 @@ uxiu 按运行环境分为三个模块。下表列出当前所有公开的运行
 
 | API | 说明 | 可选依赖 |
 | --- | --- | --- |
-| `createApp(config?)` | 创建并监听 Koa 应用 | `koa`，启用日志时还需 `log4js` |
-| `createLogger(options)` | 创建 log4js 日志实例 | `log4js` |
+| `createApp(config?)` | 创建并监听 Koa 应用 | `koa`，启用日志时还需 `pino` |
+| `createLogger(options)` | 创建 pino 结构化日志实例 | `pino` |
 | `createRequestInspector()` | 创建请求规则检查器 | `path-to-regexp` |
 | `new SessionStore()` | 创建会话存储工厂 | - |
 | `getLocalIP()` | 读取非内部 IPv4 地址 | - |
@@ -156,6 +156,11 @@ uxiu 按运行环境分为三个模块。下表列出当前所有公开的运行
 | API | 说明 |
 | --- | --- |
 | `getLocalIP.getPrimaryLocalIP()` | 获取主要本地 IPv4 地址 |
-| `logger.app` / `logger.debug` / `logger.crash` / `logger.console` | `createLogger()` 创建的默认日志分类 |
+| `logger.access` / `logger.business` / `logger.businessError` / `logger.systemError` / `logger.debug` | 五个固定日志分类单例 |
+| `accessLogger` / `businessLogger` / `businessErrorLogger` / `systemErrorLogger` / `debugLogger` | 可在路由外直接导入的固定分类 |
+| `logger.createCategory(name, options?)` | 创建、等待目标 ready 并登记自定义分类 |
+| `logger.category(name)` | 获取已经登记的分类 |
+| `logger.categories` | 当前所有固定和自定义分类的只读 Map 快照 |
+| `logger.flush()` / `logger.close()` | 刷新或关闭所有分类日志 |
 
-日志分类提供的方法来自 `log4js.Logger`；自定义 `expandCategories` 会增加同名分类属性。
+日志分类提供 pino logger 方法，并支持对象字段和 `child()` 上下文扩展；每条记录都是单行 JSON，默认携带调用位置和结构化堆栈。

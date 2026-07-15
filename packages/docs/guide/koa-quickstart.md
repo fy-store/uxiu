@@ -5,7 +5,7 @@
 ## 安装依赖
 
 ```bash
-pnpm add uxiu koa log4js path-to-regexp
+pnpm add uxiu koa pino path-to-regexp
 ```
 
 ## 创建应用
@@ -38,14 +38,21 @@ const application = await createApp({
 	env: 'development',
 	loggerOptions: {
 		storageDirPath: './logs',
-		crashAutoRegister: false,
-		expandCategories: {
-			access: true
+		registerFatalHandler: false,
+		fixedCategories: {
+			access: true,
+			business: true,
+			businessError: true,
+			systemError: true,
+			debug: true
 		}
 	},
 	inited({ app, logger }) {
 		app.use(async (ctx, next) => {
-			logger?.access.info(ctx.method, ctx.path, ctx.requestId)
+			logger?.business.info(
+				{ method: ctx.method, path: ctx.path, requestId: ctx.requestId },
+				'checking public route'
+			)
 
 			if (!inspector.check(publicRules, ctx.method as any, ctx.path)) {
 				ctx.status = 403
@@ -76,7 +83,10 @@ const application = await createApp({
 })
 
 process.once('SIGTERM', () => {
-	application.server.close()
+	application.server.close(async () => {
+		await application.logger?.close()
+		process.exit(0)
+	})
 })
 ```
 

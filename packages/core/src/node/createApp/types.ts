@@ -22,7 +22,7 @@ export interface CreateAppKoaOptions {
 	// asyncLocalStorage?: boolean;
 }
 
-export interface CreateAppBaseCtx<T extends Record<string, boolean> = {}> {
+export interface CreateAppBaseCtx {
 	/** 挂载的端口 */
 	port: number
 	/** 环境变量 */
@@ -32,50 +32,69 @@ export interface CreateAppBaseCtx<T extends Record<string, boolean> = {}> {
 	 * - env uxiu 对 env 进行了特殊处理, 只能为 'production' | 'development' 默认为 CreateAppConfig.env
 	 */
 	koaOptions: CreateAppKoaOptions
-	/** 日志模块配置 */
-	loggerOptions?: LoggerOptions<T>
+	/**
+	 * 结构化日志配置。
+	 *
+	 * @remarks
+	 * 存在时，createApp 会在创建 Koa 实例前调用 `createLogger()`，并将日志单例挂载到生命周期上下文
+	 * 和 Koa Context。createApp 不会主动写入 access、business、businessError 或 debug 分类；
+	 * 请求结果和异常只通过现有 success/error/end 及 hook 事件通知，由应用决定是否记录。
+	 */
+	loggerOptions?: LoggerOptions
 }
 
-export type CreateAppBeforeInitCtx<T extends Record<string, boolean> = {}> = {
+export type CreateAppBeforeInitCtx = {
 	/** koa 实例 */
 	app: Koa<Koa.DefaultState, Koa.DefaultContext> | null
 	/** http 服务 */
 	server: http.Server | null
-	/** 日志实例 */
-	logger?: Logger<T>
-} & CreateAppBaseCtx<T>
+	/**
+	 * 日志实例占位。
+	 *
+	 * @remarks beforeInit 在日志初始化之前执行，因此该阶段的 logger 始终为 undefined。
+	 */
+	logger?: Logger
+} & CreateAppBaseCtx
 
-export type CreateAppInitedCtx<T extends Record<string, boolean> = {}> = {
+export type CreateAppInitedCtx = {
 	/** koa 实例 */
 	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server | null
-	/** 日志实例 */
-	logger?: Logger<T>
-} & CreateAppBaseCtx<T>
+	/**
+	 * 已初始化的结构化日志实例；未配置 loggerOptions 时为 undefined。
+	 */
+	logger?: Logger
+} & CreateAppBaseCtx
 
-export type CreateAppBeforeMountCtx<T extends Record<string, boolean> = {}> = {
+export type CreateAppBeforeMountCtx = {
 	/** koa 实例 */
 	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server
-	/** 日志实例 */
-	logger?: Logger<T>
-} & CreateAppBaseCtx<T>
+	/**
+	 * 已初始化的结构化日志实例；未配置 loggerOptions 时为 undefined。
+	 */
+	logger?: Logger
+} & CreateAppBaseCtx
 
-export type CreateAppMountedCtx<T extends Record<string, boolean> = {}> = {
+export type CreateAppMountedCtx = {
 	/** koa 实例 */
 	app: Koa<Koa.DefaultState, Koa.DefaultContext>
 	/** http 服务 */
 	server: http.Server
-	/** 日志实例 */
-	logger?: Logger<T>
-} & CreateAppBaseCtx<T>
+	/**
+	 * 已初始化的结构化日志实例；未配置 loggerOptions 时为 undefined。
+	 *
+	 * @remarks 应用停止时建议调用 `await logger.close()`，确保异步日志全部落盘并关闭文件。
+	 */
+	logger?: Logger
+} & CreateAppBaseCtx
 
 /**
  * 创建实例配置
  */
-export interface CreateAppConfig<T extends Record<string, boolean> = {}> {
+export interface CreateAppConfig {
 	/** 应用挂载的端口, 默认为 3323 */
 	port?: number
 	/** - env 只能为 'production' | 'development' 默认为 'production' */
@@ -85,16 +104,25 @@ export interface CreateAppConfig<T extends Record<string, boolean> = {}> {
 	 * - env uxiu 对 env 进行了特殊处理, 只能为 'production' | 'development' 默认为 CreateAppConfig.env
 	 */
 	koaOptions?: CreateAppKoaOptions
-	/** 日志模块配置 */
-	loggerOptions?: LoggerOptions<T>
+	/**
+	 * 结构化日志配置。未传入时不创建日志实例。
+	 *
+	 * @remarks
+	 * 启用后只负责初始化和挂载日志实例，不会自动记录访问或业务错误。生命周期和 Koa Context
+	 * 可按需写入固定或自定义分类，也可订阅 success/error/end 事件自行组织访问日志。五个固定分类是进程级单例，
+	 * createApp 初始化完成后也可以从 `uxiu/node` 直接导入对应的 `*Logger` 在路由外使用。
+	 *
+	 * @see LoggerOptions
+	 */
+	loggerOptions?: LoggerOptions
 	/** 应用初始化前, 此时 koa 还未创建, server 还未创建, 日志模块还未初始化, 支持 async 返回 Promise 将会等待 */
-	beforeInit?: (ctx: CreateAppBeforeInitCtx<T>) => Promise<any> | void
+	beforeInit?: (ctx: CreateAppBeforeInitCtx) => Promise<any> | void
 	/** 应用初始化后, 此时 koa 已经创建, 日志模块已经初始化, server 还未创建, 支持 async 返回 Promise 将会等待 */
-	inited?: (ctx: CreateAppInitedCtx<T>) => Promise<any> | void
+	inited?: (ctx: CreateAppInitedCtx) => Promise<any> | void
 	/** 应用初始化后http服务挂载前, 此时 koa 已经创建, server 已经创建但还未挂载, 支持 async 返回 Promise 将会等待 */
-	beforeMount?: (ctx: CreateAppBeforeMountCtx<T>) => Promise<any> | void
+	beforeMount?: (ctx: CreateAppBeforeMountCtx) => Promise<any> | void
 	/** 应用初始化后并且http服务已经挂载, 支持 async 返回 Promise 将会等待 */
-	mounted?: (ctx: CreateAppMountedCtx<T>) => Promise<any> | void
+	mounted?: (ctx: CreateAppMountedCtx) => Promise<any> | void
 	/** 端口挂载失败错误提示 */
 	mountPortErrorTip?: boolean
 	/** 应用挂载失败事件 */
@@ -144,7 +172,11 @@ declare module 'koa' {
 		pwd: string
 		/** 发布订阅模块 */
 		bus: Bus<InterfaceToType<CreateAppBusEvent>>
-		/** 日志实例 */
+		/**
+		 * 当前应用共享的结构化日志实例。
+		 *
+		 * @remarks 未配置 createApp.loggerOptions 时为 undefined。
+		 */
 		logger?: Logger
 	}
 
@@ -155,7 +187,11 @@ declare module 'koa' {
 		pwd: string
 		/** 发布订阅模块 */
 		bus: Bus<InterfaceToType<CreateAppBusEvent>>
-		/** 日志实例 */
+		/**
+		 * 当前应用共享的结构化日志实例。
+		 *
+		 * @remarks 未配置 createApp.loggerOptions 时为 undefined。
+		 */
 		logger?: Logger
 	}
 }

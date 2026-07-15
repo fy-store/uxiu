@@ -12,7 +12,7 @@ import { createApp } from 'uxiu/node'
 pnpm add koa
 ```
 
-配置日志时还需安装 `log4js`。
+配置日志时还需安装 `pino`。pino 只在配置了 `loggerOptions` 后动态导入。createApp 只负责初始化并挂载日志单例，不会自动写入访问、业务或业务错误日志。
 
 ## 基础示例
 
@@ -89,7 +89,7 @@ await createApp({
 ```ts
 app.use(async (ctx, next) => {
 	ctx.bus.on('hook:end', async () => {
-		ctx.logger?.app.info(ctx.requestId)
+		ctx.logger?.business.info({ requestId: ctx.requestId }, 'request hooks completed')
 	})
 
 	await next()
@@ -102,4 +102,34 @@ app.use(async (ctx, next) => {
 - `error` / `hook:error`
 - `end` / `hook:end`
 
-请求中抛出的异常由基础中间件捕获并发送到请求事件总线。业务需要按自身策略设置响应状态和内容。
+`loggerOptions.fixedCategories` 可以分别开启或关闭 `access`、`business`、`businessError`、`systemError` 和 `debug`。开启分类只代表分类可以使用，不代表 createApp 会主动写入。
+
+请求中抛出的异常已经通过 `error` / `hook:error` 事件发送；成功和请求结束分别通过 `success` / `hook:success`、`end` / `hook:end` 发送。createApp 不会额外写入 `businessError` 或 `access`，应用可以在事件订阅器中决定记录内容和字段：
+
+```ts
+app.use(async (ctx, next) => {
+	ctx.bus.on('end', () => {
+		ctx.logger?.access.info(
+			{ requestId: ctx.requestId, method: ctx.method, path: ctx.path, status: ctx.status },
+			'request completed'
+		)
+	})
+
+	ctx.bus.on('error', (error) => {
+		ctx.logger?.businessError.error(
+			{ err: error, requestId: ctx.requestId, path: ctx.path },
+			'request failed'
+		)
+	})
+
+	await next()
+})
+```
+
+固定分类是进程级单例。createApp 初始化完成后，路由外模块可以直接导入使用：
+
+```ts
+import { businessLogger } from 'uxiu/node'
+
+businessLogger.info({ task: 'daily-report' }, 'background task started')
+```

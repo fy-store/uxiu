@@ -36,14 +36,14 @@ Node 模块采用动态导入，只有使用相应功能时才需要安装 peer 
 
 | 功能 | 依赖 |
 | --- | --- |
-| `createApp` | `koa` + `log4js` |
-| `createLogger` | `log4js` |
+| `createApp` | `koa` + `pino` |
+| `createLogger` | `pino` |
 | `createRequestInspector` | `path-to-regexp` |
 | Koa 路由集成 | `@koa/router` |
 
 ```bash
 pnpm add koa
-pnpm add log4js
+pnpm add pino
 pnpm add path-to-regexp
 ```
 

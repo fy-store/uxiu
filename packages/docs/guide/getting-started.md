@@ -51,7 +51,7 @@ if (error) {
 `createApp`、日志、会话存储和请求检查器位于 `uxiu/node`。相关第三方库是可选 peer 依赖，请按实际功能安装：
 
 ```bash
-pnpm add koa log4js path-to-regexp
+pnpm add koa pino path-to-regexp
 ```
 
 ```ts

@@ -3,8 +3,8 @@ layout: home
 
 hero:
   name: uxiu
-  text: Koa 后端基础工具库
-  tagline: 本文档由大模型辅助生成, 可能会与文档有细微差异, 实际使用请参考具体方法的文档注释
+  text: Web 后端基础工具库
+  tagline: 本文档由大模型辅助生成, 可能会与实际使用有细微差异, 实际使用请参考具体方法的文档注释
   image:
     src: /logo.svg
     alt: uxiu
@@ -39,7 +39,7 @@ pnpm add uxiu
 Node/Koa 模块按需安装 peer 依赖：
 
 ```bash
-pnpm add koa @koa/router log4js path-to-regexp
+pnpm add koa @koa/router pino path-to-regexp
 ```
 
 ```ts

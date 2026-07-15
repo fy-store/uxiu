@@ -9,13 +9,11 @@ export * from './types.js'
  * 创建一个 koa 实例
  * @param config 配置选项
  */
-export async function createApp<const T extends Record<string, boolean> = {}>(
-	config: CreateAppConfig<T> = {}
-): Promise<CreateAppMountedCtx<T>> {
+export async function createApp(config: CreateAppConfig = {}): Promise<CreateAppMountedCtx> {
 	const { default: Koa } = await import('koa')
 	const opEnv = config.env === 'development' ? 'development' : 'production'
 	const { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset, env = opEnv } = config.koaOptions ?? {}
-	const ctx: CreateAppMountedCtx<T> = {
+	const ctx: CreateAppMountedCtx = {
 		env: opEnv,
 		port: config.port ?? 3323,
 		app: null as any,
@@ -76,7 +74,7 @@ export async function createApp<const T extends Record<string, boolean> = {}>(
 		await config.beforeMount(readonlyCtx)
 	}
 
-	return new Promise<CreateAppMountedCtx<T>>((resolve, reject) => {
+	return new Promise<CreateAppMountedCtx>((resolve, reject) => {
 		const { mountPortErrorTip = true } = config
 		server.on('error', (error: any) => {
 			if (config.onMountError) {

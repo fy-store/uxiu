@@ -1,8 +1,8 @@
 {
 	"name": "uxiu",
 	"type": "module",
-	"version": "0.21.0",
-	"description": "为 koa 后端应用提供基础模块的工具包",
+	"version": "0.22.0-alpha.1",
+	"description": "为 web 后端应用提供基础模块的工具包",
 	"types": "./dist/index.d.mts",
 	"exports": {
 		".": "./dist/index.mjs",
@@ -16,7 +16,7 @@
 		"dist"
 	],
 	"engines": {
-		"node": ">=22.0.0"
+		"node": ">=22.18.0"
 	},
 	"repository": {
 		"type": "git",
@@ -45,7 +45,7 @@
 	"peerDependencies": {
 		"@koa/router": "^15.0.0",
 		"koa": "^3.0.0",
-		"log4js": "^6.0.0",
+		"pino": "^10.3.1",
 		"path-to-regexp": "^8.0.0"
 	},
 	"peerDependenciesMeta": {
@@ -55,7 +55,7 @@
 		"koa": {
 			"optional": true
 		},
-		"log4js": {
+		"pino": {
 			"optional": true
 		},
 		"path-to-regexp": {
