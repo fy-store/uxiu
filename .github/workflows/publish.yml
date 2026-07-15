@@ -72,7 +72,19 @@ jobs:
         run: |
           version=$(node -p "require('./packages/core/package.json').version")
           versions=$(npm view uxiu versions --json)
+          tag=$(VERSION="$version" node -e "
+            const version = process.env.VERSION
+            const separator = version.indexOf('-')
+            if (separator === -1) {
+              process.stdout.write('latest')
+            } else {
+              const identifier = version.slice(separator + 1).split('+')[0].split('.')[0]
+              process.stdout.write(/^(?:v|[0-9])/i.test(identifier) ? 'next' : identifier)
+            }
+          ")
           echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "uxiu@${version} will use npm dist-tag ${tag}."
 
           if VERSION="$version" VERSIONS="$versions" node -e "
             const versions = JSON.parse(process.env.VERSIONS)
@@ -88,7 +100,7 @@ jobs:
       - name: Publish package
         if: steps.package.outputs.publish == 'true'
         working-directory: packages/core
-        run: npm publish --access public --provenance
+        run: npm publish --access public --provenance --tag "${{ steps.package.outputs.tag }}"
 
   build-docs:
     name: Build documentation

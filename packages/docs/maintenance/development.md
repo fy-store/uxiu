@@ -83,6 +83,16 @@ pnpm --dir packages/core pack --dry-run
 
 发布 npm 新版本前，需要更新 `packages/core/package.json` 中的 `version`。已存在的版本会跳过 npm 发布，但文档仍会正常部署。
 
+发布工作流会根据版本自动选择 npm dist-tag：
+
+- 正式版本（如 `0.22.0`）使用 `latest`；
+- `0.22.0-alpha.1` 使用 `alpha`；
+- `0.22.0-beta.1` 使用 `beta`；
+- `0.22.0-rc.1` 使用 `rc`；
+- 预发布标识以数字或 `v` 开头时回退为 `next`，避免生成 npm 不接受的 tag。
+
+例如 alpha 版本发布后使用 `npm install uxiu@alpha` 安装。工作流始终显式传递 `npm publish --tag`，因此 prerelease 版本不会被错误标记为 `latest`，也不会触发 npm 的缺少 tag 错误。
+
 仓库设置要求：
 
 - GitHub Pages 的 Source 选择 `GitHub Actions`
