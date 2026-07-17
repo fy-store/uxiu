@@ -7,6 +7,7 @@ export * from './types.js'
 
 /**
  * 创建一个 koa 实例
+ * - 若监听 error 事件/hook, 则不会打印错误信息到控制台
  * @param config 配置选项
  */
 export async function createApp(config: CreateAppConfig = {}): Promise<CreateAppMountedCtx> {
@@ -48,11 +49,17 @@ export async function createApp(config: CreateAppConfig = {}): Promise<CreateApp
 				await koaCtx.bus.emitLineUp('hook:success', koaCtx)
 			}
 		} catch (error) {
+			let showError = true
 			if (koaCtx.bus.has('error')) {
+				showError = false
 				koaCtx.bus.emit('error', error, koaCtx)
 			}
 			if (koaCtx.bus.has('hook:error')) {
+				showError = false
 				koaCtx.bus.emitLineUp('hook:error', error, koaCtx)
+			}
+			if (showError) {
+				console.error(error)
 			}
 		} finally {
 			if (koaCtx.bus.has('end')) {
