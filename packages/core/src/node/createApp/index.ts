@@ -7,8 +7,9 @@ export * from './types.js'
 
 /**
  * 创建一个 koa 实例
- * - 若监听 error 事件/hook, 则不会打印错误信息到控制台
  * @param config 配置选项
+ * - 通过 ctx.bus 可监听 success/error/end 事件, success 将在路由处理完成后触发, error 将在路由处理过程中发生错误时触发, end 将在路由处理完成后触发(无论是否发生错误)
+ * - 默认端口为 3323
  */
 export async function createApp(config: CreateAppConfig = {}): Promise<CreateAppMountedCtx> {
 	const { default: Koa } = await import('koa')
@@ -20,7 +21,9 @@ export async function createApp(config: CreateAppConfig = {}): Promise<CreateApp
 		app: null as any,
 		server: null as any,
 		koaOptions: { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset, env },
-		loggerOptions: config.loggerOptions
+		loggerOptions: config.loggerOptions,
+		useRouterErrorDefaultAction: config.useRouterErrorDefaultAction ?? true,
+		usePortErrorDefaultAction: config.usePortErrorDefaultAction ?? true
 	}
 
 	const readonlyCtx = readonly.shallowReadonly(ctx)
@@ -49,17 +52,14 @@ export async function createApp(config: CreateAppConfig = {}): Promise<CreateApp
 				await koaCtx.bus.emitLineUp('hook:success', koaCtx)
 			}
 		} catch (error) {
-			let showError = true
+			if (ctx.useRouterErrorDefaultAction) {
+				console.error(error)
+			}
 			if (koaCtx.bus.has('error')) {
-				showError = false
 				koaCtx.bus.emit('error', error, koaCtx)
 			}
 			if (koaCtx.bus.has('hook:error')) {
-				showError = false
 				koaCtx.bus.emitLineUp('hook:error', error, koaCtx)
-			}
-			if (showError) {
-				console.error(error)
 			}
 		} finally {
 			if (koaCtx.bus.has('end')) {
@@ -84,14 +84,15 @@ export async function createApp(config: CreateAppConfig = {}): Promise<CreateApp
 	return new Promise<CreateAppMountedCtx>((resolve, reject) => {
 		const { mountPortErrorTip = true } = config
 		server.on('error', (error: any) => {
-			if (config.onMountError) {
-				config.onMountError(error)
-			} else {
+			if (ctx.usePortErrorDefaultAction) {
 				// 判断端口是否被占用
 				if (error?.code === 'EADDRINUSE' && mountPortErrorTip) {
 					console.error(`\x1b[31m${ctx.port} 端口已被占用 !\x1B[0m`)
 				}
 				reject(error)
+			}
+			if (config.onMountError) {
+				config.onMountError(error)
 			}
 		})
 

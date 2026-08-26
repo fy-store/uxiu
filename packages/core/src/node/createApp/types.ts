@@ -41,6 +41,10 @@ export interface CreateAppBaseCtx {
 	 * 请求结果和异常只通过现有 success/error/end 及 hook 事件通知，由应用决定是否记录。
 	 */
 	loggerOptions?: LoggerOptions
+	/** 使用默认的路由错误处理行为, 默认为 true */
+	useRouterErrorDefaultAction?: boolean
+	/** 使用默认的端口错误处理行为, 默认为 true */
+	usePortErrorDefaultAction?: boolean
 }
 
 export type CreateAppBeforeInitCtx = {
@@ -115,6 +119,8 @@ export interface CreateAppConfig {
 	 * @see LoggerOptions
 	 */
 	loggerOptions?: LoggerOptions
+	/** 使用默认的路由错误处理行为, 默认为 true */
+	useRouterErrorDefaultAction?: boolean
 	/** 应用初始化前, 此时 koa 还未创建, server 还未创建, 日志模块还未初始化, 支持 async 返回 Promise 将会等待 */
 	beforeInit?: (ctx: CreateAppBeforeInitCtx) => Promise<any> | void
 	/** 应用初始化后, 此时 koa 已经创建, 日志模块已经初始化, server 还未创建, 支持 async 返回 Promise 将会等待 */
@@ -125,6 +131,8 @@ export interface CreateAppConfig {
 	mounted?: (ctx: CreateAppMountedCtx) => Promise<any> | void
 	/** 端口挂载失败错误提示 */
 	mountPortErrorTip?: boolean
+	/** 使用默认的端口错误处理行为, 默认为 true */
+	usePortErrorDefaultAction?: boolean
 	/** 应用挂载失败事件 */
 	onMountError?: (error: any) => void
 }
