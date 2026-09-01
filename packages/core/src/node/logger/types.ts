@@ -182,11 +182,13 @@ export interface LoggerOptions {
 	 */
 	sync?: boolean
 	/**
-	 * 是否注册一次性的 `uncaughtException` 和 `unhandledRejection` 处理器。
+	 * 是否注册一次性的 `uncaughtExceptionMonitor` 处理器。
 	 *
 	 * @remarks
-	 * 捕获后会将异常写入 `systemError` 分类，执行所有已登记分类的同步刷新，并调用 `process.exit(1)`。
-	 * 如果 systemError 分类被显式关闭，则不会注册这两个处理器。
+	 * Node.js 会将未处理的 Promise 拒绝提升为未捕获异常。监控处理器会将两类异常写入
+	 * `systemError` 分类并同步刷新全部分类，但不会接管异常：Node.js 仍会照常向终端输出原始错误
+	 * 并以非零状态退出。
+	 * 如果 systemError 分类被显式关闭，则不会注册该监控处理器。
 	 * `logger.close()` 会移除当前实例注册的处理器。已有全局异常策略、测试或嵌入式运行时应关闭。
 	 *
 	 * @defaultValue `true`

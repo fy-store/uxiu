@@ -172,7 +172,8 @@ describe('createLogger()', () => {
 
 	it.each([
 		['正常退出', 'normal', 0],
-		['未捕获异常崩溃', 'crash', 1]
+		['未捕获异常崩溃', 'crash', 1],
+		['未处理 Promise 拒绝', 'rejection', 1]
 	] as const)('%s时同步刷新所有分类的最后日志', (_title, mode, expectedStatus) => {
 		const logsPath = createLogsPath()
 		const fixture = path.join(import.meta.dirname, 'logger.process.fixture.ts')
@@ -189,12 +190,16 @@ describe('createLogger()', () => {
 			mode,
 			msg: 'last business log before process exit'
 		})
-		if (mode === 'crash') {
+		if (mode !== 'normal') {
+			const message = mode === 'crash' ? 'fixture process crashed' : 'fixture promise rejected'
+			expect(result.stderr).toContain(`Error: ${message}`)
 			expect(readJsonLines(path.join(logsPath, 'systemError/systemError.log'))[0]).toMatchObject({
 				category: 'systemError',
-				event: 'uncaughtException',
-				err: { message: 'fixture process crashed' }
+				event: mode === 'crash' ? 'uncaughtException' : 'unhandledRejection',
+				err: { message }
 			})
+		} else {
+			expect(result.stderr).toBe('')
 		}
 	})
 })

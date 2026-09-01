@@ -16,6 +16,8 @@ if (mode === 'crash') {
 	setImmediate(() => {
 		throw new Error('fixture process crashed')
 	})
+} else if (mode === 'rejection') {
+	void Promise.reject(new Error('fixture promise rejected'))
 } else {
 	process.exit(0)
 }

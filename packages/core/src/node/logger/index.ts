@@ -156,7 +156,6 @@ class LoggerManager {
 	private readonly destinations = new Map<string, ManagedDestination>()
 	private readonly categoryCreations = new Map<string, Promise<CategoryLogger>>()
 	private fatalHandler?: (error: Error, origin: NodeJS.UncaughtExceptionOrigin) => void
-	private rejectionHandler?: (reason: unknown, promise: Promise<unknown>) => void
 
 	/** 访问日志单例。输出 HTTP 方法、路径、状态码、耗时等请求信息。 */
 	get access(): CategoryLogger {
@@ -273,7 +272,7 @@ class LoggerManager {
 	 *
 	 * @remarks
 	 * 此方法会阻塞事件循环，只适用于已经无法等待 Promise 的同步退出阶段。模块会在正常 `exit`、
-	 * `uncaughtException` 和 `unhandledRejection` 流程中自动调用，普通业务代码、请求处理和常规
+	 * `uncaughtExceptionMonitor` 流程中自动调用，普通业务代码、请求处理和常规
 	 * SIGTERM/SIGINT 优雅退出不应手动调用。自定义同步崩溃处理器且关闭了 registerFatalHandler 时，
 	 * 才需要在 `process.exit()` 前显式调用。它只刷新，不关闭文件，也不会移除事件监听器。
 	 */
@@ -475,32 +474,26 @@ class LoggerManager {
 	private registerFailureHandlers(): void {
 		if (this.options?.registerFatalHandler === false || !this.categoryLoggers.has('systemError')) return
 		this.fatalHandler = (error, origin) => {
-			this.recordSystemFailure({ err: error, origin, event: 'uncaughtException' }, '进程未捕获异常')
+			const event = origin === 'unhandledRejection' ? 'unhandledRejection' : 'uncaughtException'
+			const message =
+				event === 'unhandledRejection' ? '进程存在未处理的 Promise 拒绝' : '进程未捕获异常'
+			this.recordSystemFailure({ err: error, origin, event }, message)
 		}
-		this.rejectionHandler = (reason) => {
-			const payload =
-				reason instanceof Error
-					? { err: reason, event: 'unhandledRejection' }
-					: { reason, event: 'unhandledRejection' }
-			this.recordSystemFailure(payload, '进程存在未处理的 Promise 拒绝')
-		}
-		process.once('uncaughtException', this.fatalHandler)
-		process.once('unhandledRejection', this.rejectionHandler)
+		process.once('uncaughtExceptionMonitor', this.fatalHandler)
 	}
 
 	private removeFailureHandlers(): void {
-		if (this.fatalHandler) process.removeListener('uncaughtException', this.fatalHandler)
-		if (this.rejectionHandler) process.removeListener('unhandledRejection', this.rejectionHandler)
+		if (this.fatalHandler) process.removeListener('uncaughtExceptionMonitor', this.fatalHandler)
 		this.fatalHandler = undefined
-		this.rejectionHandler = undefined
 	}
 
-	private recordSystemFailure(payload: Record<string, unknown>, message: string): never {
+	private recordSystemFailure(payload: Record<string, unknown>, message: string): void {
 		try {
 			this.categoryLoggers.get('systemError')?.fatal(payload, message)
+		} catch {
+			// 监控处理器不能抛错，否则会干扰 Node.js 输出原始异常。
 		} finally {
 			this.flushSync()
-			process.exit(1)
 		}
 	}
 
