@@ -3,6 +3,7 @@ import type { Context } from 'koa'
 import http from 'http'
 import { Bus } from 'event-imt'
 import { readonly } from '../../utils/index.js'
+import { loadPeerDependency } from '../peerDependency/index.js'
 export * from './types.js'
 
 /**
@@ -12,7 +13,7 @@ export * from './types.js'
  * - 默认端口为 3323
  */
 export async function createApp(config: CreateAppConfig = {}): Promise<CreateAppMountedCtx> {
-	const { default: Koa } = await import('koa')
+	const { default: Koa } = await loadPeerDependency('koa', 'createApp', () => import('koa'))
 	const opEnv = config.env === 'development' ? 'development' : 'production'
 	const { keys, maxIpsCount, proxy, proxyIpHeader, subdomainOffset, env = opEnv } = config.koaOptions ?? {}
 	const ctx: CreateAppMountedCtx = {

@@ -11,6 +11,7 @@ import type {
 	LoggerOptions as PinoLoggerOptions
 } from 'pino'
 import { RotatingFileDestination, resolveRotationOptions, type ManagedDestination } from './rotation.js'
+import { loadPeerDependency } from '../peerDependency/index.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -111,22 +112,7 @@ function addCallMetadata(args: unknown[], stackTraceLimit: number): unknown[] {
  * 仅在日志真正初始化时动态加载 pino，并为缺失的可选 peer 依赖提供明确错误。
  */
 async function loadPino(): Promise<PinoModule> {
-	try {
-		return (await import('pino')) as unknown as PinoModule
-	} catch (error) {
-		const code = isObject(error) && 'code' in error ? error.code : undefined
-		const message = error instanceof Error ? error.message : String(error)
-		if (
-			(code === 'ERR_MODULE_NOT_FOUND' || code === 'MODULE_NOT_FOUND') &&
-			/(?:^|["'])pino(?:["']|$)/.test(message)
-		) {
-			throw new Error(
-				'日志模块需要可选依赖 "pino"，请先运行 "pnpm add pino"（或使用当前包管理器安装 pino）。',
-				{ cause: error }
-			)
-		}
-		throw error
-	}
+	return loadPeerDependency('pino', '日志模块', async () => (await import('pino')) as unknown as PinoModule)
 }
 
 /**

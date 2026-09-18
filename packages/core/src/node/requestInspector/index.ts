@@ -7,6 +7,7 @@ import type {
 	RequestInspectorRuleSerialize
 } from './types.js'
 import { isArray, isBoolean, isObject, isString } from '../../utils/index.js'
+import { loadPeerDependency } from '../peerDependency/index.js'
 import path from 'path/posix'
 export type * from './types.js'
 
@@ -212,6 +213,8 @@ class RequestInspector {
  * 创建一个请求校验器
  */
 export async function createRequestInspector() {
-	const { pathToRegexp } = await import('path-to-regexp')
+	const { pathToRegexp } = await loadPeerDependency('path-to-regexp', '请求检查器', () =>
+		import('path-to-regexp')
+	)
 	return new RequestInspector(pathToRegexp)
 }
