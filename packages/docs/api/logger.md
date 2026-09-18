@@ -43,11 +43,11 @@ debugLogger.debug({ orderId: 42 }, 'debug payload')
 
 | 分类 | 用途 | 默认状态 | 默认级别 | 输出 |
 | --- | --- | --- | --- | --- |
-| `access` | HTTP 访问记录 | 开启 | info | `logs/access/access.log` |
-| `business` | 正常业务事件 | 开启 | info | `logs/business/business.log` |
-| `businessError` | 可预期、可恢复的业务错误 | 开启 | error | `logs/businessError/businessError.log` |
-| `systemError` | 程序崩溃或不应出现的系统错误 | 开启 | error | `logs/systemError/systemError.log` |
-| `debug` | 调试信息 | 开启 | debug | `logs/debug/debug.log` |
+| `access` | HTTP 访问记录 | 开启 | info | `logs/access/access-<日期>.log` |
+| `business` | 正常业务事件 | 开启 | info | `logs/business/business-<日期>.log` |
+| `businessError` | 可预期、可恢复的业务错误 | 开启 | error | `logs/businessError/businessError-<日期>.log` |
+| `systemError` | 程序崩溃或不应出现的系统错误 | 开启 | error | `logs/systemError/systemError-<日期>.log` |
+| `debug` | 调试信息 | 开启 | debug | `logs/debug/debug-<日期>.log` |
 
 除系统崩溃处理器会在 `uncaughtException` / `unhandledRejection` 时自动写入 `systemError` 外，日志模块不会主动写入任何分类。启用分类只表示它可以被调用；访问、业务、业务错误和 debug 日志的消息及字段完全由应用提供。createApp 同样只初始化和挂载分类，不会自动生成访问或业务错误记录。
 
@@ -81,6 +81,38 @@ await createLogger({
 ```
 
 所有固定和自定义分类都会收集到 `logger.categories` 的只读 Map 快照中，并纳入统一刷新和关闭流程。固定分类只能通过 `fixedCategories` 配置；分类名只允许字母、数字、下划线和连字符。
+
+## 文件轮转
+
+日志默认按天切分文件，并且单个文件超过 5MB 时继续按序号拆分，不需要额外配置：
+
+```text
+logs/business/business-2026-09-18.log
+logs/business/business-2026-09-18.1.log
+logs/business/business-2026-09-18.2.log
+```
+
+通过 `rotation` 可以调整时间周期、大小上限，或整体关闭轮转：
+
+```ts
+await createLogger({
+	storageDirPath: './logs',
+	rotation: {
+		// 按小时切分：<category>-YYYY-MM-DD-HH.log
+		interval: 'hourly',
+		// 单个文件上限 20MB
+		maxFileSize: 20 * 1024 * 1024
+	}
+})
+```
+
+| 配置 | 默认值 | 说明 |
+| --- | --- | --- |
+| `rotation.enabled` | `true` | 设为 `false` 时关闭轮转，退回单个 `<category>.log` |
+| `rotation.interval` | `'daily'` | `'daily'` / `'hourly'`；设为 `false` 时只按大小轮转 |
+| `rotation.maxFileSize` | `5242880`（5MB） | 单个文件大小上限（字节）；设为 `false` 时只按时间轮转 |
+
+单条日志本身超过上限时仍会完整写入，避免因无法分割单条记录而反复轮转。进程重启后会继续追加当前时间片段下序号最大的文件，不会重复创建碎片文件。轮转只负责拆分文件，不负责删除历史文件，归档和清理策略需要由部署侧或外部日志采集系统处理。
 
 ## 扩展字段
 

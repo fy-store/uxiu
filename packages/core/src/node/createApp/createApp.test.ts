@@ -5,6 +5,22 @@ import type { Logger as PinoLogger } from 'pino'
 import path from 'node:path'
 import fs from 'node:fs'
 
+const CATEGORY_LOG_PATTERN = /^(.+?)-(\d{4}-\d{2}-\d{2}(?:-\d{2})?)(?:\.(\d+))?\.log$/
+
+/** 定位分类目录下最新（时间片段最大、序号最高）的日志文件。 */
+function resolveCategoryLogFile(logsPath: string, category: string): string {
+	const directory = path.join(logsPath, category)
+	const ranked = fs
+		.readdirSync(directory)
+		.filter((file) => file.endsWith('.log'))
+		.map((file) => {
+			const match = CATEGORY_LOG_PATTERN.exec(file)
+			return { file, timeKey: match?.[2] ?? '', sequence: Number(match?.[3] ?? 0) }
+		})
+		.sort((a, b) => a.timeKey.localeCompare(b.timeKey) || a.sequence - b.sequence)
+	return path.join(directory, ranked[ranked.length - 1].file)
+}
+
 describe('createApp()', () => {
 	it('默认配置', async () => {
 		let beforeInit = false
@@ -88,8 +104,8 @@ describe('createApp()', () => {
 			app.server.close((error) => (error ? reject(error) : resolve()))
 		})
 		await app.logger!.close()
-		expect(fs.existsSync(path.join(logsPath, 'hh/hh.log'))).toBe(true)
-		expect(fs.readFileSync(path.join(logsPath, 'business/business.log'), 'utf8')).toContain(
+		expect(fs.existsSync(path.join(logsPath, 'hh'))).toBe(true)
+		expect(fs.readFileSync(resolveCategoryLogFile(logsPath, 'business'), 'utf8')).toContain(
 			'路由外业务日志'
 		)
 		fs.rmSync(logsPath, { recursive: true, force: true })
@@ -143,8 +159,8 @@ describe('createApp()', () => {
 		expect(successPaths).toEqual(['/ok'])
 		expect(errorMessages).toEqual(['route failed'])
 		expect(endPaths).toEqual(['/ok', '/error'])
-		expect(fs.readFileSync(path.join(logsPath, 'access/access.log'), 'utf8')).toBe('')
-		expect(fs.readFileSync(path.join(logsPath, 'businessError/businessError.log'), 'utf8')).toBe('')
+		expect(fs.readFileSync(resolveCategoryLogFile(logsPath, 'access'), 'utf8')).toBe('')
+		expect(fs.readFileSync(resolveCategoryLogFile(logsPath, 'businessError'), 'utf8')).toBe('')
 		expect(fs.existsSync(path.join(logsPath, 'business'))).toBe(false)
 		expect(fs.existsSync(path.join(logsPath, 'systemError'))).toBe(false)
 		fs.rmSync(logsPath, { recursive: true, force: true })

@@ -7,10 +7,10 @@ import type {
 	LoggerOptions
 } from './types.js'
 import type {
-	DestinationStream,
 	Logger as PinoLogger,
 	LoggerOptions as PinoLoggerOptions
 } from 'pino'
+import { RotatingFileDestination, resolveRotationOptions, type ManagedDestination } from './rotation.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -36,16 +36,6 @@ const LOGGER_MODULE_PATH = path.normalize(fileURLToPath(import.meta.url))
 const initializeLogger = Symbol('initializeLogger')
 const getCategoryTarget = Symbol('getCategoryTarget')
 let exitHandlerRegistered = false
-
-/** pino 文件目标在生命周期管理中使用的 SonicBoom 方法子集。 */
-interface ManagedDestination extends DestinationStream {
-	fd?: number
-	flushSync(): void
-	end(): void
-	on(event: 'close' | 'error' | 'finish' | 'ready', listener: (...args: any[]) => void): this
-	once(event: 'close' | 'error' | 'finish' | 'ready', listener: (...args: any[]) => void): this
-	removeListener(event: 'close' | 'error' | 'finish' | 'ready', listener: (...args: any[]) => void): this
-}
 
 /** 动态导入的 pino 模块形状。 */
 interface PinoModule {
@@ -411,12 +401,16 @@ class LoggerManager {
 		categoryOptions: LoggerCategoryOptions
 	): { category: PinoLogger; destination: ManagedDestination } {
 		if (!this.pino || !this.options) throw new Error('logger initialization is incomplete')
+		const pino = this.pino.default
 		const directory = path.join(this.options.storageDirPath, name)
 		fs.mkdirSync(directory, { recursive: true })
-		const destination = this.pino.default.destination({
-			dest: path.join(directory, `${name}.log`),
-			sync: this.options.sync ?? false
-		}) as ManagedDestination
+		const sync = this.options.sync ?? false
+		const createDestination = (dest: string) =>
+			pino.destination({ dest, sync }) as ManagedDestination
+		const rotation = resolveRotationOptions(this.options.rotation)
+		const destination: ManagedDestination = rotation
+			? new RotatingFileDestination({ directory, baseName: name, ...rotation }, createDestination)
+			: createDestination(path.join(directory, `${name}.log`))
 		const category = this.createPinoInstance(name, categoryOptions, destination)
 		return { category, destination }
 	}
@@ -507,6 +501,30 @@ class LoggerManager {
 			(!Number.isInteger(options.stackTraceLimit) || options.stackTraceLimit < 1)
 		) {
 			throw new Error('stackTraceLimit must be a positive integer')
+		}
+		this.validateRotation(options.rotation)
+	}
+
+	private validateRotation(rotation: LoggerOptions['rotation']): void {
+		if (rotation === undefined) return
+		if (!isObject(rotation) || Array.isArray(rotation)) throw new Error('rotation must be an object')
+		if (rotation.enabled !== undefined && typeof rotation.enabled !== 'boolean') {
+			throw new Error('rotation.enabled must be a boolean')
+		}
+		if (
+			rotation.interval !== undefined &&
+			rotation.interval !== false &&
+			rotation.interval !== 'hourly' &&
+			rotation.interval !== 'daily'
+		) {
+			throw new Error('rotation.interval must be "hourly", "daily" or false')
+		}
+		if (
+			rotation.maxFileSize !== undefined &&
+			rotation.maxFileSize !== false &&
+			(!Number.isInteger(rotation.maxFileSize) || rotation.maxFileSize < 1)
+		) {
+			throw new Error('rotation.maxFileSize must be a positive integer or false')
 		}
 	}
 

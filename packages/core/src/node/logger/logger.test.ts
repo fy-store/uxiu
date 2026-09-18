@@ -26,6 +26,22 @@ function readJsonLines(file: string): Record<string, any>[] {
 	return text.split('\n').map((line) => JSON.parse(line))
 }
 
+const CATEGORY_LOG_PATTERN = /^(.+?)-(\d{4}-\d{2}-\d{2}(?:-\d{2})?)(?:\.(\d+))?\.log$/
+
+/** 定位分类目录下最新（时间片段最大、序号最高）的日志文件。 */
+function resolveCategoryLogFile(logsPath: string, category: string): string {
+	const directory = path.join(logsPath, category)
+	const ranked = fs
+		.readdirSync(directory)
+		.filter((file) => file.endsWith('.log'))
+		.map((file) => {
+			const match = CATEGORY_LOG_PATTERN.exec(file)
+			return { file, timeKey: match?.[2] ?? '', sequence: Number(match?.[3] ?? 0) }
+		})
+		.sort((a, b) => a.timeKey.localeCompare(b.timeKey) || a.sequence - b.sequence)
+	return path.join(directory, ranked[ranked.length - 1].file)
+}
+
 afterEach(async () => {
 	await loggerSingleton.close()
 	for (const directory of testDirectories) {
@@ -57,11 +73,11 @@ describe('createLogger()', () => {
 		debugLogger.debug({ payload: true }, 'debug payload')
 		await Promise.all([logger.close(), logger.close()])
 
-		const access = readJsonLines(path.join(logsPath, 'access/access.log'))
-		const business = readJsonLines(path.join(logsPath, 'business/business.log'))
-		const businessError = readJsonLines(path.join(logsPath, 'businessError/businessError.log'))
-		const systemError = readJsonLines(path.join(logsPath, 'systemError/systemError.log'))
-		const debug = readJsonLines(path.join(logsPath, 'debug/debug.log'))
+		const access = readJsonLines(resolveCategoryLogFile(logsPath, 'access'))
+		const business = readJsonLines(resolveCategoryLogFile(logsPath, 'business'))
+		const businessError = readJsonLines(resolveCategoryLogFile(logsPath, 'businessError'))
+		const systemError = readJsonLines(resolveCategoryLogFile(logsPath, 'systemError'))
+		const debug = readJsonLines(resolveCategoryLogFile(logsPath, 'debug'))
 
 		expect(access[0]).toMatchObject({
 			category: 'access',
@@ -117,13 +133,13 @@ describe('createLogger()', () => {
 		])
 		await logger.close()
 
-		expect(readJsonLines(path.join(logsPath, 'audit/audit.log'))[0]).toMatchObject({
+		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'audit'))[0]).toMatchObject({
 			category: 'audit',
 			domain: 'security',
 			requestId: 'req-1',
 			userId: 7
 		})
-		expect(readJsonLines(path.join(logsPath, 'payment/payment.log'))[0]).toMatchObject({
+		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'payment'))[0]).toMatchObject({
 			category: 'payment',
 			amount: 99
 		})
@@ -146,7 +162,7 @@ describe('createLogger()', () => {
 		debugLogger.debug('enabled at runtime')
 		await logger.close()
 
-		expect(readJsonLines(path.join(logsPath, 'debug/debug.log'))[0]).toMatchObject({
+		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'debug'))[0]).toMatchObject({
 			category: 'debug',
 			msg: 'enabled at runtime'
 		})
@@ -170,6 +186,93 @@ describe('createLogger()', () => {
 		await expect(logger.createCategory('../outside')).rejects.toThrow('invalid logger category name')
 	})
 
+	it('默认按天分文件，并在超过大小上限时按序号继续拆分', async () => {
+		const logsPath = createLogsPath()
+		const logger = await createLogger({
+			storageDirPath: logsPath,
+			registerFatalHandler: false,
+			sync: true,
+			captureStack: false,
+			base: null,
+			rotation: { maxFileSize: 512 }
+		})
+
+		const directory = path.join(logsPath, 'business')
+		expect(fs.readdirSync(directory)).toEqual([
+			expect.stringMatching(/^business-\d{4}-\d{2}-\d{2}\.log$/)
+		])
+
+		for (let index = 0; index < 20; index += 1) {
+			businessLogger.info({ index, payload: 'x'.repeat(64) }, 'rotated')
+		}
+		await logger.close()
+
+		const files = fs.readdirSync(directory)
+		expect(files.length).toBeGreaterThan(1)
+		expect(files.some((file) => /^business-\d{4}-\d{2}-\d{2}\.log$/.test(file))).toBe(true)
+		expect(files.some((file) => /^business-\d{4}-\d{2}-\d{2}\.1\.log$/.test(file))).toBe(true)
+		expect(files.flatMap((file) => readJsonLines(path.join(directory, file)))).toHaveLength(20)
+		for (const file of files) {
+			expect(fs.statSync(path.join(directory, file)).size).toBeLessThanOrEqual(512)
+		}
+	})
+
+	it('可通过 rotation 调整时间周期或关闭轮转', async () => {
+		const hourlyPath = createLogsPath()
+		const hourly = await createLogger({
+			storageDirPath: hourlyPath,
+			registerFatalHandler: false,
+			sync: true,
+			rotation: { interval: 'hourly' }
+		})
+		businessLogger.info('hourly')
+		await hourly.close()
+		expect(fs.readdirSync(path.join(hourlyPath, 'business'))).toEqual([
+			expect.stringMatching(/^business-\d{4}-\d{2}-\d{2}-\d{2}\.log$/)
+		])
+
+		const sizeOnlyPath = createLogsPath()
+		const sizeOnly = await createLogger({
+			storageDirPath: sizeOnlyPath,
+			registerFatalHandler: false,
+			sync: true,
+			captureStack: false,
+			base: null,
+			rotation: { interval: false, maxFileSize: 512 }
+		})
+		for (let index = 0; index < 10; index += 1) {
+			businessLogger.info({ index, payload: 'x'.repeat(64) }, 'sized')
+		}
+		await sizeOnly.close()
+		const sizeOnlyFiles = fs.readdirSync(path.join(sizeOnlyPath, 'business'))
+		expect(sizeOnlyFiles.length).toBeGreaterThan(1)
+		expect(sizeOnlyFiles.every((file) => /^business(?:\.\d+)?\.log$/.test(file))).toBe(true)
+
+		const plainPath = createLogsPath()
+		const plain = await createLogger({
+			storageDirPath: plainPath,
+			registerFatalHandler: false,
+			sync: true,
+			rotation: { enabled: false }
+		})
+		businessLogger.info('no rotation')
+		await plain.close()
+		expect(fs.readdirSync(path.join(plainPath, 'business'))).toEqual(['business.log'])
+	})
+
+	it('校验非法的轮转配置', async () => {
+		const storageDirPath = createLogsPath()
+		await expect(
+			createLogger({ storageDirPath, registerFatalHandler: false, rotation: { interval: 'weekly' as never } })
+		).rejects.toThrow('rotation.interval')
+		await expect(
+			createLogger({ storageDirPath, registerFatalHandler: false, rotation: { maxFileSize: 0 } })
+		).rejects.toThrow('rotation.maxFileSize')
+		await expect(
+			createLogger({ storageDirPath, registerFatalHandler: false, rotation: { enabled: 'yes' as never } })
+		).rejects.toThrow('rotation.enabled')
+	})
+
 	it.each([
 		['正常退出', 'normal', 0],
 		['未捕获异常崩溃', 'crash', 1],
@@ -185,7 +288,7 @@ describe('createLogger()', () => {
 
 		expect(result.error).toBeUndefined()
 		expect(result.status, result.stderr).toBe(expectedStatus)
-		expect(readJsonLines(path.join(logsPath, 'business/business.log'))[0]).toMatchObject({
+		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'business'))[0]).toMatchObject({
 			category: 'business',
 			mode,
 			msg: 'last business log before process exit'
@@ -193,7 +296,7 @@ describe('createLogger()', () => {
 		if (mode !== 'normal') {
 			const message = mode === 'crash' ? 'fixture process crashed' : 'fixture promise rejected'
 			expect(result.stderr).toContain(`Error: ${message}`)
-			expect(readJsonLines(path.join(logsPath, 'systemError/systemError.log'))[0]).toMatchObject({
+			expect(readJsonLines(resolveCategoryLogFile(logsPath, 'systemError'))[0]).toMatchObject({
 				category: 'systemError',
 				event: mode === 'crash' ? 'uncaughtException' : 'unhandledRejection',
 				err: { message }

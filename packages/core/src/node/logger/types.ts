@@ -89,6 +89,45 @@ export type FixedLoggerCategoriesOptions = Partial<
 	Record<FixedLoggerCategoryName, boolean | LoggerCategoryOptions>
 >
 
+/** 日志文件按时间切分的周期。 */
+export type LoggerRotationInterval = 'hourly' | 'daily'
+
+/**
+ * 日志文件轮转配置。
+ *
+ * @remarks
+ * 默认按天切分文件，并且单个文件超过 5MB 时继续拆分为 `<category>-<日期>.<序号>.log`。
+ * 时间片段和大小上限都可以单独关闭，也可以整体关闭轮转退回单文件模式。
+ */
+export interface LoggerRotationOptions {
+	/**
+	 * 是否启用文件轮转。
+	 *
+	 * @defaultValue `true`
+	 */
+	enabled?: boolean
+	/**
+	 * 按时间切分文件的周期。
+	 *
+	 * @remarks
+	 * `'daily'` 生成 `<category>-YYYY-MM-DD.log`，`'hourly'` 生成 `<category>-YYYY-MM-DD-HH.log`。
+	 * 设为 `false` 时不按时间切分，只按大小轮转。
+	 *
+	 * @defaultValue `'daily'`
+	 */
+	interval?: LoggerRotationInterval | false
+	/**
+	 * 单个日志文件的大小上限（字节）。
+	 *
+	 * @remarks
+	 * 达到上限后写入带递增序号的同名文件，例如 `<category>-YYYY-MM-DD.1.log`。
+	 * 单条日志本身超过上限时仍会完整写入。设为 `false` 时不按大小轮转。
+	 *
+	 * @defaultValue `5242880`（5MB）
+	 */
+	maxFileSize?: number | false
+}
+
 /**
  * {@link createLogger} 的初始化配置。
  *
@@ -114,9 +153,18 @@ export interface LoggerOptions {
 	 *
 	 * @remarks
 	 * 相对路径以 `process.cwd()` 为基准。目录会按需递归创建，每个分类写入
+	 * `<storageDirPath>/<category>/<category>-<日期>.log`；关闭轮转时写入
 	 * `<storageDirPath>/<category>/<category>.log`。
 	 */
 	storageDirPath: string
+	/**
+	 * 日志文件轮转配置。
+	 *
+	 * @remarks
+	 * 默认按天切分文件，单个文件超过 5MB 时继续按序号拆分，可通过
+	 * {@link LoggerRotationOptions} 调整周期、大小上限或整体关闭轮转。
+	 */
+	rotation?: LoggerRotationOptions
 	/**
 	 * 固定分类的启用状态和配置。
 	 *
