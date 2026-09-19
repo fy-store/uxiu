@@ -80,24 +80,25 @@ describe('createLogger()', () => {
 		const debug = readJsonLines(resolveCategoryLogFile(logsPath, 'debug'))
 
 		expect(access[0]).toMatchObject({
-			category: 'access',
-			service: 'logger-test',
 			method: 'GET',
 			path: '/health',
-			msg: 'request completed'
+			msg: 'request completed',
+			_meta_: { category: 'access', level: 30, service: 'logger-test' }
 		})
-		expect(access[0].caller.file).toContain('logger.test.ts')
-		expect(access[0].stack[0]).toEqual(access[0].caller)
-		expect(business[0]).toMatchObject({ category: 'business', orderId: 42 })
+		expect(access[0].category).toBeUndefined()
+		expect(access[0].level).toBeUndefined()
+		expect(access[0]._meta_.caller.file).toContain('logger.test.ts')
+		expect(access[0]._meta_.stack[0]).toEqual(access[0]._meta_.caller)
+		expect(business[0]).toMatchObject({ orderId: 42, _meta_: { category: 'business' } })
 		expect(businessError[0]).toMatchObject({
-			category: 'businessError',
-			err: { message: 'invalid order' }
+			err: { message: 'invalid order' },
+			_meta_: { category: 'businessError' }
 		})
 		expect(systemError[0]).toMatchObject({
-			category: 'systemError',
-			err: { message: 'invariant broken' }
+			err: { message: 'invariant broken' },
+			_meta_: { category: 'systemError' }
 		})
-		expect(debug[0]).toMatchObject({ category: 'debug', payload: true })
+		expect(debug[0]).toMatchObject({ payload: true, _meta_: { category: 'debug' } })
 	})
 
 	it('快速创建并收集自定义分类，支持 child() 扩展上下文', async () => {
@@ -134,16 +135,43 @@ describe('createLogger()', () => {
 		await logger.close()
 
 		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'audit'))[0]).toMatchObject({
-			category: 'audit',
 			domain: 'security',
 			requestId: 'req-1',
-			userId: 7
+			userId: 7,
+			_meta_: { category: 'audit', level: 40 }
 		})
 		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'payment'))[0]).toMatchObject({
-			category: 'payment',
-			amount: 99
+			amount: 99,
+			_meta_: { category: 'payment' }
 		})
 		expect(fs.existsSync(path.join(logsPath, 'disabled'))).toBe(false)
+	})
+
+	it('通过 record 钩子自定义记录的业务字段、元信息和消息', async () => {
+		const logsPath = createLogsPath()
+		const logger = await createLogger({
+			storageDirPath: logsPath,
+			registerFatalHandler: false,
+			sync: true,
+			captureStack: false,
+			base: { service: 'hook-test' },
+			record({ category, level, data, meta, message }) {
+				return {
+					data: { ...data, env: 'test' },
+					meta: { ...meta, category: category.toUpperCase(), level, traceId: 'trace-1' },
+					message: `[${message}]`
+				}
+			}
+		})
+		businessLogger.info({ orderId: 1 }, 'order created')
+		await logger.close()
+
+		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'business'))[0]).toMatchObject({
+			orderId: 1,
+			env: 'test',
+			msg: '[order created]',
+			_meta_: { category: 'BUSINESS', service: 'hook-test', level: 30, traceId: 'trace-1' }
+		})
 	})
 
 	it('固定分类可按配置关闭，并可通过快速创建方法重新启用', async () => {
@@ -163,8 +191,8 @@ describe('createLogger()', () => {
 		await logger.close()
 
 		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'debug'))[0]).toMatchObject({
-			category: 'debug',
-			msg: 'enabled at runtime'
+			msg: 'enabled at runtime',
+			_meta_: { category: 'debug' }
 		})
 		expect(fs.existsSync(path.join(logsPath, 'access'))).toBe(false)
 	})
@@ -289,17 +317,17 @@ describe('createLogger()', () => {
 		expect(result.error).toBeUndefined()
 		expect(result.status, result.stderr).toBe(expectedStatus)
 		expect(readJsonLines(resolveCategoryLogFile(logsPath, 'business'))[0]).toMatchObject({
-			category: 'business',
 			mode,
-			msg: 'last business log before process exit'
+			msg: 'last business log before process exit',
+			_meta_: { category: 'business' }
 		})
 		if (mode !== 'normal') {
 			const message = mode === 'crash' ? 'fixture process crashed' : 'fixture promise rejected'
 			expect(result.stderr).toContain(`Error: ${message}`)
 			expect(readJsonLines(resolveCategoryLogFile(logsPath, 'systemError'))[0]).toMatchObject({
-				category: 'systemError',
 				event: mode === 'crash' ? 'uncaughtException' : 'unhandledRejection',
-				err: { message }
+				err: { message },
+				_meta_: { category: 'systemError' }
 			})
 		} else {
 			expect(result.stderr).toBe('')

@@ -4,7 +4,8 @@ import type {
 	FixedLoggerCategoryName,
 	LoggerCallSite,
 	LoggerCategoryOptions,
-	LoggerOptions
+	LoggerOptions,
+	LoggerRecordContext
 } from './types.js'
 import type {
 	Logger as PinoLogger,
@@ -13,6 +14,7 @@ import type {
 import { RotatingFileDestination, resolveRotationOptions, type ManagedDestination } from './rotation.js'
 import { loadPeerDependency } from '../peerDependency/index.js'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 export type * from './types.js'
@@ -33,6 +35,8 @@ const FIXED_CATEGORY_DEFINITIONS = {
 const FIXED_CATEGORY_NAMES = Object.keys(FIXED_CATEGORY_DEFINITIONS) as FixedLoggerCategoryName[]
 const FIXED_CATEGORY_NAME_SET = new Set<string>(FIXED_CATEGORY_NAMES)
 const CATEGORY_NAME_PATTERN = /^[A-Za-z0-9][A-Za-z0-9_-]*$/
+/** 框架元信息的统一存放字段，避免与业务字段同名冲突。 */
+const META_KEY = '_meta_'
 const LOGGER_MODULE_PATH = path.normalize(fileURLToPath(import.meta.url))
 const initializeLogger = Symbol('initializeLogger')
 const getCategoryTarget = Symbol('getCategoryTarget')
@@ -97,15 +101,37 @@ function captureCallStack(limit: number): LoggerCallSite[] {
 		.slice(0, limit)
 }
 
-/** 按 pino 参数约定注入调用位置和结构化堆栈。 */
-function addCallMetadata(args: unknown[], stackTraceLimit: number): unknown[] {
+/** 采集调用位置和结构化堆栈，作为 `_meta_` 的一部分。 */
+function captureCallMetadata(stackTraceLimit: number): { caller?: LoggerCallSite; stack: LoggerCallSite[] } {
 	const stack = captureCallStack(stackTraceLimit)
-	const metadata = { caller: stack[0], stack }
-	const [first, ...rest] = args
+	return { caller: stack[0], stack }
+}
 
-	if (first instanceof Error) return [{ err: first, ...metadata }, ...rest]
-	if (isObject(first) && !Array.isArray(first)) return [{ ...first, ...metadata }, ...rest]
-	return [metadata, ...args]
+/** 从 pino 日志方法的参数中拆分出业务字段、消息和其余参数。 */
+function splitLogArgs(args: unknown[]): {
+	data: Record<string, unknown>
+	message: unknown
+	rest: unknown[]
+} {
+	const [first, second, ...rest] = args
+	if (first instanceof Error) return { data: { err: first }, message: second, rest }
+	if (isObject(first) && !Array.isArray(first)) {
+		return { data: first as Record<string, unknown>, message: second, rest }
+	}
+	return { data: {}, message: first, rest }
+}
+
+/** 按 pino 参数约定重组业务字段、`_meta_` 元信息和消息。 */
+function buildLogArgs(
+	data: Record<string, unknown>,
+	meta: Record<string, unknown>,
+	message: unknown,
+	rest: unknown[]
+): unknown[] {
+	const nextArgs: unknown[] = [{ ...data, [META_KEY]: meta }]
+	if (message !== undefined) nextArgs.push(message)
+	nextArgs.push(...rest)
+	return nextArgs
 }
 
 /**
@@ -426,18 +452,40 @@ class LoggerManager {
 		const options = this.options!
 		const stackTraceLimit = options.stackTraceLimit ?? 10
 		const captureStack = options.captureStack !== false
+		const record = options.record
 		const pinoOptions = options.pinoOptions ?? {}
 		const userLogMethod = pinoOptions.hooks?.logMethod
+		const baseMeta =
+			options.base === undefined
+				? { pid: process.pid, hostname: os.hostname() }
+				: options.base === null
+					? {}
+					: options.base
 		const loggerOptions: PinoLoggerOptions = {
 			...pinoOptions,
 			name,
 			level: categoryOptions.enabled === false ? 'silent' : (categoryOptions.level ?? options.level ?? 'info'),
-			base: options.base,
-			timestamp: pinoOptions.timestamp ?? pino.default.stdTimeFunctions.isoTime,
+			base: null,
+			// 与自定义 level 格式化器配合，输出 `{"time":...` 而不是默认的 `{"level":N,"time":...`，
+			// 从而把 level 交给 `_meta_` 管理。
+			timestamp: () => `"time":"${new Date().toISOString()}"`,
+			formatters: {
+				...pinoOptions.formatters,
+				level: () => ({})
+			},
 			hooks: {
 				...pinoOptions.hooks,
 				logMethod(args, method, level) {
-					const nextArgs = captureStack ? addCallMetadata(args, stackTraceLimit) : args
+					const { data, message, rest } = splitLogArgs(args)
+					const meta: Record<string, unknown> = { ...baseMeta, category: name, level }
+					if (captureStack) Object.assign(meta, captureCallMetadata(stackTraceLimit))
+					const override = record?.({ category: name, level, message, data, meta })
+					const nextArgs = buildLogArgs(
+						override?.data ?? data,
+						override?.meta ?? meta,
+						override && 'message' in override ? override.message : message,
+						rest
+					)
 					if (userLogMethod) {
 						return userLogMethod.call(this, nextArgs as Parameters<typeof method>, method, level)
 					}
@@ -445,10 +493,9 @@ class LoggerManager {
 				}
 			}
 		}
-		return pino.default(loggerOptions, destination).child({
-			category: name,
-			...(categoryOptions.bindings ?? {})
-		})
+		const instance = pino.default(loggerOptions, destination)
+		const bindings = categoryOptions.bindings
+		return bindings && Object.keys(bindings).length > 0 ? instance.child(bindings) : instance
 	}
 
 	private registerFailureHandlers(): void {

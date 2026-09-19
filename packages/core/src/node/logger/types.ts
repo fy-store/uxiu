@@ -11,16 +11,61 @@ import type {
  * @remarks
  * 支持 pino 的 `trace`、`debug`、`info`、`warn`、`error`、`fatal` 等级方法，
  * 也可以通过 pino 的 `child()` 为一组日志绑定 requestId、userId 等上下文字段。
- * 日志方法的对象参数会展开到最终的单行 JSON 顶层。
+ * 日志方法的对象参数会展开到最终的单行 JSON 顶层；框架产生的元信息统一收敛到
+ * `_meta_` 字段，不会与业务字段同名冲突。
  *
  * @example
  * ```ts
  * logger.business.info({ orderId: 42 }, 'order created')
+ * // { "orderId": 42, "msg": "order created", "_meta_": { "level": 30, "category": "business", ... } }
  * const requestLogger = logger.access.child({ requestId: 'req-1' })
  * requestLogger.info({ path: '/health' }, 'request completed')
  * ```
  */
 export type CategoryLogger = PinoLogger
+
+/**
+ * 自定义日志记录内容时的上下文。
+ *
+ * @remarks
+ * `data` 是写到 JSON 顶层的业务字段，`meta` 是将写入 `_meta_` 的框架元信息。
+ */
+export interface LoggerRecordContext {
+	/** 日志分类名。 */
+	category: string
+	/** 日志级别数值。 */
+	level: number
+	/** 日志消息；调用日志方法时未提供消息则为 `undefined`。 */
+	message?: unknown
+	/** 将被写到 JSON 顶层的业务字段。 */
+	data: Record<string, unknown>
+	/** 将被写入 `_meta_` 的元字段。 */
+	meta: Record<string, unknown>
+}
+
+/**
+ * 记录钩子的返回值，只覆盖显式返回的字段。
+ *
+ * @remarks
+ * 返回 `{ message: undefined }` 可以移除消息字段；未返回的字段保持默认内容。
+ */
+export interface LoggerRecordOverride {
+	/** 覆盖顶层业务字段。 */
+	data?: Record<string, unknown>
+	/** 覆盖 `_meta_` 元字段。 */
+	meta?: Record<string, unknown>
+	/** 覆盖日志消息；返回 `undefined` 时不写入消息字段。 */
+	message?: unknown
+}
+
+/**
+ * 自定义每条日志记录内容的钩子。
+ *
+ * @remarks
+ * 钩子在日志序列化后、写入文件前调用，可以增删业务字段、元字段或消息。
+ * 不返回内容时保留默认记录内容。钩子必须同步返回，且不应抛错。
+ */
+export type LoggerRecordHook = (context: LoggerRecordContext) => LoggerRecordOverride | void
 
 /**
  * 框架内置的五个固定日志分类。
@@ -72,8 +117,9 @@ export interface LoggerCategoryOptions {
 	 * 固定写入该分类每条日志的字段。
 	 *
 	 * @remarks
-	 * 内置的 `category` 字段由模块管理；其余字段会作为 pino child bindings 写入。
-	 * 适合放置 domain、module、component 等分类级上下文。
+	 * 这些字段作为 pino child bindings 写到 JSON 顶层（不会进入 `_meta_`），
+	 * 适合放置 domain、module、component 等分类级上下文。分类名由模块管理，
+	 * 写入 `_meta_.category`，不需要也不应该在此重复配置。
 	 */
 	bindings?: Bindings
 	/**
@@ -199,16 +245,16 @@ export interface LoggerOptions {
 	 * 固定写入所有分类日志的基础字段。
 	 *
 	 * @remarks
-	 * 未传入时保留 pino 默认的 `pid` 和 `hostname`。传入对象时使用该对象作为 pino base；
-	 * 传入 `null` 时不写入任何 pino 基础字段。分类名称仍会通过 `category` 字段单独写入。
+	 * 未传入时使用 `{ pid, hostname }`。这些字段会写入每条日志的 `_meta_`，
+	 * 不再占用 JSON 顶层。传入对象时使用该对象作为基础元信息；传入 `null` 时不写入。
 	 */
 	base?: Bindings | null
 	/**
 	 * 是否为每条日志采集 `caller` 和结构化 `stack`。
 	 *
 	 * @remarks
-	 * 采集堆栈会产生额外开销。自动生成的 `caller`、`stack` 会覆盖日志对象中的同名字段，
-	 * 以保证调用信息可信。高吞吐场景可以关闭。
+	 * 采集堆栈会产生额外开销。调用信息写入 `_meta_.caller` 和 `_meta_.stack`，
+	 * 不会与业务字段冲突。高吞吐场景可以关闭。
 	 *
 	 * @defaultValue `true`
 	 */
@@ -243,14 +289,39 @@ export interface LoggerOptions {
 	 */
 	registerFatalHandler?: boolean
 	/**
-	 * 透传给 pino 的高级配置，例如 redact、serializers、timestamp、formatters 或 customLevels。
+	 * 自定义每条日志记录内容的钩子。
 	 *
 	 * @remarks
-	 * `name`、`level`、`base` 由本模块按分类管理，因此不能在此设置。
-	 * 自定义 `hooks.logMethod` 会在本模块注入 `caller` 和 `stack` 后执行；
-	 * `hooks.streamWrite` 等其他 hook 会保持原样。
+	 * 钩子在日志序列化后、写入文件前调用，可以增删顶层业务字段、`_meta_` 元字段或消息。
+	 * 适合统一补充 traceId、环境标识，或把敏感字段移出顶层。
+	 *
+	 * @example
+	 * ```ts
+	 * await createLogger({
+	 *   storageDirPath: './logs',
+	 *   record: ({ data, meta, message }) => ({
+	 *     data: { ...data, env: process.env.NODE_ENV },
+	 *     meta: { ...meta, traceId: currentTraceId() },
+	 *     message
+	 *   })
+	 * })
+	 * ```
 	 */
-	pinoOptions?: Omit<PinoLoggerOptions, 'base' | 'hooks' | 'level' | 'name'> & {
+	record?: LoggerRecordHook
+	/**
+	 * 透传给 pino 的高级配置，例如 redact、serializers 或 customLevels。
+	 *
+	 * @remarks
+	 * `name`、`level`、`base`、`timestamp` 以及 `formatters.level` 由本模块管理，因此不能在此设置。
+	 * 自定义 `hooks.logMethod` 会在本模块注入 `_meta_` 后执行，`hooks.streamWrite` 会在本模块
+	 * 整理好记录结构后执行；`redact`、`serializers`、`formatters.bindings`、`formatters.log`
+	 * 等其他配置保持原样。
+	 */
+	pinoOptions?: Omit<
+		PinoLoggerOptions,
+		'base' | 'formatters' | 'hooks' | 'level' | 'name' | 'timestamp'
+	> & {
 		hooks?: PinoLoggerOptions['hooks']
+		formatters?: Omit<NonNullable<PinoLoggerOptions['formatters']>, 'level'>
 	}
 }

@@ -114,9 +114,38 @@ await createLogger({
 
 单条日志本身超过上限时仍会完整写入，避免因无法分割单条记录而反复轮转。进程重启后会继续追加当前时间片段下序号最大的文件，不会重复创建碎片文件。轮转只负责拆分文件，不负责删除历史文件，归档和清理策略需要由部署侧或外部日志采集系统处理。
 
+## 元信息与 `_meta_`
+
+框架为每条日志产生的元信息统一收敛到 `_meta_` 字段，业务字段始终保留在 JSON 顶层，因此不会出现框架字段覆盖业务同名字段的情况：
+
+```json
+{
+	"orderId": 42,
+	"msg": "order created",
+	"_meta_": {
+		"pid": 12345,
+		"hostname": "app-1",
+		"category": "business",
+		"level": 30,
+		"caller": { "file": "/app/src/order.ts", "line": 12, "column": 8, "function": "createOrder" },
+		"stack": []
+	}
+}
+```
+
+| `_meta_` 字段 | 来源 | 说明 |
+| --- | --- | --- |
+| `pid`、`hostname` | `base` | `base` 默认值；传入对象时使用该对象，传入 `null` 时不写入 |
+| `category` | 分类名 | 由日志模块管理，不需要也不应该在 `bindings` 中重复配置 |
+| `level` | 日志级别 | pino 的数值级别，例如 `info` 为 `30` |
+| `caller` | 调用位置 | 直接调用日志方法的文件、行、列和函数名 |
+| `stack` | 调用堆栈 | 过滤 logger、pino 和 Node.js 内部帧后的结构化调用堆栈 |
+
+`base` 只影响 `_meta_`，不再写入 JSON 顶层。`level` 也不再出现在顶层，只在 `_meta_.level` 中保留数值级别。
+
 ## 扩展字段
 
-日志对象会合并到最终 JSON 顶层，pino 的 `child()` 可固定请求或任务上下文：
+业务字段会合并到最终 JSON 顶层，pino 的 `child()` 可固定请求或任务上下文：
 
 ```ts
 const requestLogger = businessLogger.child({
@@ -127,7 +156,9 @@ const requestLogger = businessLogger.child({
 requestLogger.info({ orderId: 42 }, 'order created')
 ```
 
-通过 `pinoOptions` 可以配置脱敏、序列化器、自定义时间或级别：
+`child()` 传入的固定字段同样写入 JSON 顶层，适合放置 requestId、userId 等请求或任务级上下文。分类级固定字段则通过分类的 `bindings` 配置，效果相同。
+
+通过 `pinoOptions` 可以配置脱敏、序列化器和自定义字段格式：
 
 ```ts
 await createLogger({
@@ -138,9 +169,41 @@ await createLogger({
 })
 ```
 
+`name`、`level`、`base`、`timestamp` 以及 `formatters.level` 由日志模块管理，不能在 `pinoOptions` 中设置。
+
+## 自定义记录内容
+
+`record` 钩子在每条日志写入前调用，可以增删顶层业务字段、`_meta_` 元字段或消息。钩子接收当前分类、级别、消息和已整理的字段，返回的对象只覆盖显式返回的字段：
+
+```ts
+await createLogger({
+	storageDirPath: './logs',
+	record({ category, level, data, meta, message }) {
+		return {
+			// 顶层业务字段：补充环境标识
+			data: { ...data, env: process.env.NODE_ENV },
+			// 元字段：补充 traceId，或覆盖分类/级别
+			meta: { ...meta, traceId: currentTraceId() },
+			// 消息：返回 undefined 时不写入 msg 字段
+			message: message ? `[${category}] ${message}` : message
+		}
+	}
+})
+```
+
+| 上下文/返回字段 | 说明 |
+| --- | --- |
+| `category`、`level` | 只读的分类名和数值级别 |
+| `message` | 调用日志方法时提供的消息；未提供时为 `undefined` |
+| `data` | 将被写到 JSON 顶层的业务字段 |
+| `meta` | 将被写入 `_meta_` 的元字段 |
+| 返回 `data` / `meta` / `message` | 覆盖对应内容；未返回的字段保持默认值 |
+
+钩子必须同步返回且不应抛错。返回 `{ message: undefined }` 可以移除消息字段。
+
 ## 调用位置和堆栈
 
-每条日志默认增加：
+每条日志默认在 `_meta_` 中增加：
 
 - `caller`：直接调用日志方法的文件、行、列和函数名；
 - `stack`：过滤 logger、pino 和 Node.js 内部帧后的结构化调用堆栈，默认最多 10 层。
